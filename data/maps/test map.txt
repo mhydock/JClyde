@@ -1,0 +1,48 @@
+TILES
+dir ../data/tiles						// directory to find the images
+
+s red_tile_anim.png 5  r 100 s			// image strip, 5 frames, animated, repeat, 100ms/frame, sporadic mode
+o marble_tile.png						// single image, no animation
+o basic_brick.png
+o basic_brick_isolated.png
+o basic_brick_left.png
+o basic_brick_right.png
+
+
+TILEMAP 109 24 64		// Width Height tile_size
+// 'c' is where Clyde will be placed at the beginning of the level.
+// 'e' is the exit.
+// 't' is the hidden treasure.
+// 'g' is a gem.
+// 'h' is health.
+// 's' is a spike (instant death)
+// 'm' is magma (instant death)
+// 'r' is a razor (animated spike, damages)
+422222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222225
+3                                                                                  45                      3
+3                                                                                  45                      3
+3                                                                                  45                      3
+3                    0       0                                                     45                      3
+3      0   0   0   0000000000000                                                   45                      3
+3                                    0000                                          45                      3
+3   0                                         0000                                 45                      3
+3                                                               45   4222222222222225                      3
+3      0   0   0   0                  0                       4225                 45                      3
+3                  0     00    00     0                   42222225                 45                      3
+3                  00                000                         422222222222225   45                      3
+3                  0000000000000000000000                        3                 45                      3
+3                  0                    0                        3                 45                      3
+3                  0                    0   00                   3   4222222222222225                      3
+3                  0    00000000000000000                        3                 45                      3
+3                  0                    0                        3                 45                      3
+3                  0                    0        00              422222222222225   45                      3
+3                  00000000000000000    0                        3                 45                      3
+3                                                                3                 45                      3
+3                                                   4225         3   4222222222222225                   e  3
+3    c                                11111        422225        3                                         3
+3              11111                111111111     42222225       3                                         3
+422222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222225
+
+
+SPECIAL
+// Specialized items (such switches and doors) will go here.
