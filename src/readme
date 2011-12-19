@@ -1,0 +1,12 @@
+This is where all of the source code is place. In order to compile, open up a
+terminal at this location and type:
+
+javac *.java
+
+The main method is located in ClydesAdventure, so to run the game, type:
+
+java ClydesAdventure
+
+
+A .jar will be made eventually, to make this easier to run. It will be found in
+the root directory.
