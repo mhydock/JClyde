@@ -1,5 +1,5 @@
 TILES
-dir ../data/tiles						// directory to find the images
+dir ./data/tiles						// directory to find the images
 
 s red_tile_anim.png 5  r 100 s			// image strip, 5 frames, animated, repeat, 100ms/frame, sporadic mode
 o marble_tile.png						// single image, no animation
@@ -7,6 +7,8 @@ o basic_brick.png
 o basic_brick_isolated.png
 o basic_brick_left.png
 o basic_brick_right.png
+
+END_IMAGES
 
 
 TILEMAP 109 24 64		// Width Height tile_size

@@ -1,6 +1,6 @@
 //==============================================================================
 // Date Created:		14 December 2011
-// Last Updated:		15 December 2011
+// Last Updated:		18 December 2011
 //
 // File Name:			ClydeSprite.java
 // File Author:			M Matthew Hydock
@@ -440,10 +440,6 @@ public class ClydeSprite extends Sprite
 			if (t.isItem())
 				t.scheduleRemoval();
 		}
-		
-		
-		if (Math.sqrt(Math.pow(x-tilemap.getExitX(),2)+Math.pow(y-tilemap.getExitY(),2)) < 5)
-			((ClydePanel)parent).endLevel();
 	}
 //==============================================================================
 

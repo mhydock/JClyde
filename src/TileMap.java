@@ -200,7 +200,7 @@ public class TileMap extends GameLayer
 	public Tile getTileAt(int x, int y)
 	// Simple method to obtain a tile, given a global x and y.
 	{
-		if (x >= 0 && x < tilemap[0].length && y >= 0 && y < tilemap.length)
+		if (x >= 0 && x < getMapWidth() && y >= 0 && y < getMapHeight())
 			return tilemap[y/tile_size][x/tile_size];
 			
 		return null
@@ -211,7 +211,7 @@ public class TileMap extends GameLayer
 	{
 		Tile t = getTileAt(x,y);
 		if (t != null)
-			return t.isObstacle();
+			return t.isCollidable();
 			
 		return false;
 	}
@@ -219,7 +219,7 @@ public class TileMap extends GameLayer
 	public void removeTile(int x, int y)
 	// Remove the tile located at (x,y).
 	{
-		if (x >= 0 && x < tilemap[0].length && y >= 0 && y < tilemap.length)
+		if (x >= 0 && x < numCols && y >= 0 && y < numRows)
 			tilemap[y][x] = null;
 	}
 //==============================================================================

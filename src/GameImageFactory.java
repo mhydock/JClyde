@@ -1,6 +1,6 @@
 //==============================================================================
 // Date Created:		26 November 2011
-// Last Updated:		15 December 2011
+// Last Updated:		19 December 2011
 //
 // File Name:			GameImageFactory.java
 // File Author:			M Matthew Hydock
@@ -9,6 +9,11 @@
 //						spit out GameImage objects. It can produce simple
 //						GameImages, GameImageStrips, GameImageGrids,
 //						GameImageSequences, and GameImageGroups.
+//
+//						Additionally, if the generated GameImage supports
+//						animation, and the line that generated it contains
+//						animation information, it can be asked to generate a
+//						companion GameAnimation object for it.
 //==============================================================================
 
 import java.awt.*;
@@ -20,18 +25,24 @@ import javax.imageio.*;
 
 public class GameImageFactory
 {
-	private static String directory = "Images/";
+	private static String imageDir;
 	private static BufferedReader input;
 	private static boolean inputEnd;
 	private static String curr_line;
 	
 	private static GameImagesFactory factory;
 
+//==============================================================================
+// Set up the GameImageFactory.
+//==============================================================================
 	private GameImageFactory()
 	// Singleton constructor for the GameImageFactory.
 	{		
 		input = null;
 		inputEnd = true;
+		
+		imageDir = null;
+		curr_line = null;
 	}
 	
 	public static GameImageFactory getInstanceOf()
@@ -44,7 +55,7 @@ public class GameImageFactory
 		return factory;
 	}
 	
-	public void setInputFile(String path)
+	public static void setInputFile(String path)
 	// Sets the file to read from. If the path is wrong or there is no readable
 	// file, then the whole system will quit.
 	{
@@ -62,31 +73,39 @@ public class GameImageFactory
 			System.exit(1);
 		}
 	}
-	
-	public GameImage produceGameImage()
+//==============================================================================
+
+
+//==============================================================================
+// High-level methods to parse input.
+//==============================================================================	
+	public static GameImage produceGameImage()
 	// Parses input until a GameImage is generated.
-	// Recognizes the following formats:
-	//
-	//	o <fnm>							>> a single image
-	//	s <fnm> <number>				>> a strip of images
-	//	d <fnm> <rows> <columns>		>> a grid of images
-	//	n <fnm*.ext> <number>			>> a numbered sequence of images
-	//	g <name> <fnm> [ <fnm> ]*		>> a group of images 
-	//
 	// Skips blank lines and comment lines.
 	{
 		char ch;
-		while (curr_line = input.nextLine() && curr_line != null)
+		while ((curr_line = input.nextLine()) != null)
 		{
-			if (line.length() == 0)			// Blank line
-				continue;
-			if (line.startsWith("//"))		// Comment line
+			// Work on a duplicate of the current line.
+			String line = new String(curr_line);
+			
+			if (line.indexOf("//") != -1)
+			// Remove comments from the line.
+				line = line.substring(0,line.indexOf("//"));
+				
+			if (line.indexOf('|') != -1)
+			// Remove animation info from the line.
+				line = line.substring(0,line.indexOf('|'));
+				
+			line = line.trim();				// Remove white space.
+			
+			if (line.isEmpty())				// Blank line.
 				continue;
 			
-			if (line.equals("TILEMAP"))		// The Tilemap has begun, stop
-				break;						// trying to load images.
-			
-        	parseLine(line);
+			if (line.equals("END_IMAGES"))	// End of images block in file.
+				break;
+				
+        	return parseLine(line);			// Trying to load image.
 		}
 		
 		inputEnd = true;
@@ -96,6 +115,19 @@ public class GameImageFactory
 	public static GameImage parseLine(String line)
 	// Parse a single line, returning a GameImage object. Separated from the
 	// produceGameImage method because it could come in handy elsewhere.
+	//
+	// Recognizes the following formats:
+	//
+	//	o <fnm>							>> a single image
+	//	s <fnm> <number>				>> a strip of images
+	//	d <fnm> <rows> <columns>		>> a grid of images
+	//	n <fnm*.ext> <number>			>> a numbered sequence of images
+	//	g <name> <fnm> [ <fnm> ]*		>> a group of images
+	//
+	// Formats that support animations can have the following after the initial
+	// image loading:
+	//	<loading phrase> <anim mode> <time/frame> <playback mode> 
+	//
 	{
 		ch = Character.toLowerCase(curr_line.charAt(0));
 
@@ -104,15 +136,37 @@ public class GameImageFactory
 			case 'o':	return getGameImage(curr_line);
 			case 's':	return getGameImageStrip(curr_line);
 			case 'd':	return getGameImageGrid(curr_line);
-			case 'n':	return getGameImageSequence(curr_line);
-			case 'g':	return getGameImageGroup(curr_line);
+//			case 'n':	return getGameImageSequence(curr_line);
+//			case 'g':	return getGameImageGroup(curr_line);
 			default	:	System.out.println("Do not recognize line: " + curr_line);
 		}
 		
 		return null;
-	}
+	}		
+//==============================================================================
 
-	private String getPrefix(String path)
+
+//==============================================================================
+// Factory status methods.
+//==============================================================================
+	public static boolean atEnd()
+	// Whether the parser has reached the end of the file or not.
+	{
+		return inputEnd;
+	}
+	
+	public static String getCurrLine()
+	// Return the last parsed line.
+	{
+		return curr_line;
+	}
+//==============================================================================
+
+
+//==============================================================================
+// String manipulation methods.
+//==============================================================================	
+	public static String getPrefix(String path)
 	// Extract the path before the file extension.
 	{
 		int posn;
@@ -125,7 +179,7 @@ public class GameImageFactory
 			return path.substring(0, posn);
 	}
 	
-	private String getExtension(String path)
+	public static String getExtension(String path)
 	// Extract the file extension, including the '.'.
 	{
 		int posn;
@@ -137,7 +191,92 @@ public class GameImageFactory
 		else
 			return path.substring(posn-1);
 	}
-//============================================================================//
+//==============================================================================
+
+	
+//==============================================================================
+// Animation methods.
+//==============================================================================
+	public static boolean canBeAnimated()
+	// Whether the image can be animated or not. If the image is a basic
+	// GameImage or there isn't a pipe in the line, then it cannot be animated.
+	{
+		if (curr_line != null)
+			return (curr_line.charAt(0) != 'o') && (curr_line.indexOf('|') != -1);
+			
+		return false;
+	}
+	
+	public static GameAnimation produceAnimation()
+	// Try to build a GameAnimation using the current line.
+	{
+		// Work on a duplicate of the current line.
+		String line = new String(curr_line);
+			
+		if (line.indexOf("//") != -1)
+		// Remove comments from the line.
+			line = line.substring(0,line.indexOf("//"));
+			
+		// Only keep what's after the pipe.
+		line = line.substring(line.indexOf('|')+1, line.length());
+				
+		line = line.trim();				// Remove white space.
+			
+		if (line.isEmpty())				// Blank line.
+			return null;
+		
+		StringTokenizer tokens = new StringTokenizer(line);
+		
+		if (tokens.countTokens() < 2)
+		{
+			System.out.println("Malformed animation expression: " + line);
+			return null;
+		}
+		
+//------------------------------------------------------------------------------
+		String curr = tokens.nextToken();
+		
+		// Attempt to set the mode. Default is repeat.
+		GameAnimation.Mode mode;
+		if (curr.equals("o"))
+			mode = GameAnimation.Mode.ONCE;
+		else if(curr.equals("r"))
+			mode = GameAnimation.Mode.REPEAT;
+		else if(curr.equals("p"))
+			mode = GameAnimation.Mode.PINGPONG;
+		else
+			mode = GameAnimation.Mode.REPEAT;
+//------------------------------------------------------------------------------		
+		// Attempt to record the time per frame. Default is -1 to invoke the
+		// default known by GameAnimation.
+		int frameDuration = -1;
+		try
+		{
+			framesDuration = Integer.parseInt(tokens.nextToken());
+		}
+		catch(Exception e)
+		// Next token wasn't an integer.
+		{
+			System.out.println("Incorrect formatting for " + line);
+			System.out.println("Using default settings...");
+		}
+//------------------------------------------------------------------------------
+		// Set whether the animation should be reversed and/or sporadic.
+		boolean isReversed = false;
+		boolean isSporadic = false;
+		while (tokens.hasMoreTokens())
+		{
+			curr = tokens.nextToken();
+			if (curr.equals("r"))
+				isReversed = true;
+				
+			if (curr.equals("s"))
+				isSporadic = true;
+		}
+		
+		return new GameAnimation(null,frameDuration,mode,isReversed,isSporadic);
+	}
+//==============================================================================
 	
 	
 //==============================================================================
@@ -243,10 +382,13 @@ public class GameImageFactory
 		}
 	}
 //------------------------------------------------------------------------------
+//==============================================================================
 
-//==============================================================================
-//==============================================================================
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 /* Don't need these right now.
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 //------------------------------------------------------------------------------
 // Methods to create and return a GameImageSequence.
 //------------------------------------------------------------------------------
