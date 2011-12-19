@@ -1,6 +1,6 @@
 //==============================================================================
 // Date Created:		24 November 2011
-// Last Updated:		18 December 2011
+// Last Updated:		19 December 2011
 //
 // File Name:			Tile.java
 // File Author:			M Matthew Hydock
@@ -47,6 +47,18 @@ public class Tile
 		return image;
 	}
 
+	public void setAnimation(GameAnimation a)
+	// For compatability with animated tiles, and descendents thereof.
+	{
+		System.out.println("Can't animate basic tile. Convert to AnimatedTile first.");
+	}
+	
+	public GameAnimation getAnimation()
+	// For compatability with animated tiles, and descendents thereof.
+	{
+		return null;
+	}
+	
 	public boolean isCollidable()
 	// Return whether the tile should be included in collision calculations or
 	// not.

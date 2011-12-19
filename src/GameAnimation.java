@@ -1,6 +1,6 @@
 //==============================================================================
 // Date Created:		25 November 2011
-// Last Updated:		18 December 2011
+// Last Updated:		19 December 2011
 //
 // File Name:			GameAnimation.java
 // File Author:			M Matthew Hydock
@@ -44,7 +44,7 @@
 
 import java.awt.image.*;
 
-public class GameAnimation implements AnimatedInterface
+public class GameAnimation implements AnimatedInterface, Cloneable
 {
 	public static enum Mode {ONCE, REPEAT, PINGPONG};
 	
@@ -55,6 +55,8 @@ public class GameAnimation implements AnimatedInterface
 	private boolean playbackStopped;		// Is the animation currently stopped?
 	private boolean playbackReversed;		// Is the animation running in reverse?
 	private boolean playbackSporadic;		// Is the animation being run sporadically?
+	private double playbackFrequency;		// How often the animation should be played
+											// while in sporadic mode.
 		
 	private AnimatedInterface anim_image;	// Animatable image to control.
 
@@ -93,6 +95,19 @@ public class GameAnimation implements AnimatedInterface
 
 		refreshData();
 	}
+	
+	public GameAnimation clone()
+	// Completely duplicate the data in the object. The image is an object
+	// though, so it is not duplicated, only its reference is.
+	{
+		GameAnimation temp = new GameAnimation(	anim_image,frameDuration,anim_mode,
+												playbackReversed,playbackSporadic);
+		
+		if (playbackSporadic)
+			temp.setSporadicMode(playbackFrequency);
+		
+		return temp;
+	}
 //==============================================================================
 	
 	
@@ -127,12 +142,18 @@ public class GameAnimation implements AnimatedInterface
 	public int getCurrentFrame()
 	// Returns the numerical value of the current frame.
 	{
-		if (anim_image != null)
-			return anim_image.getCurrentFrame();
-			
 		return curr_frame;
 	}
 
+	public int getNumberFrames()
+	// Return the max number of frames in the animatable image.
+	{
+		if (anim_image != null)
+			return anim_image.getNumFrames();
+			
+		return 0;
+	}
+	
 	public void setWatcher(ImagesPlayerWatcher w)
 	// Sets the ImagesPlayerWatcher. Does anything even use this?
 	{
@@ -163,7 +184,8 @@ public class GameAnimation implements AnimatedInterface
 	// Has the animation reached the end, and is it not repeating?
 	{
 		if (anim_image != null)
-			return ((anim_image.getCurrentFrame() >= anim_image.getNumberFrames()-1) && (anim_mode == ONCE));
+			return ((curr_frame >= anim_image.getNumberFrames()-1) || 
+					(playbackReversed && curr_frame <= 0)) && (anim_mode == ONCE));
 		
 		return true;
 	}
@@ -197,6 +219,16 @@ public class GameAnimation implements AnimatedInterface
 	{
 		return playbackSporadic;
 	}
+	
+	public double getFrequency()
+	// Return the percent chance that the animation will start during
+	// Sporadic mode. If in Normal mode, this chance is 100%, or 1.
+	{
+		if (playbackSporadic)
+			return playbackFrequency;
+			
+		return 1;
+	}			
 	
 	public void refreshData()
 	// Something important has changed, recalculate the animation's data.
@@ -262,7 +294,7 @@ public class GameAnimation implements AnimatedInterface
 		playbackSporadic = false;
 	}
 	
-	public void setSporadicMode(float f)
+	public void setSporadicMode(double f)
 	// Turns on sporadic playback mode (animations start randomly).
 	{
 		if (f >= 1)
@@ -317,13 +349,15 @@ public class GameAnimation implements AnimatedInterface
 	// animation as expected, but start it at random times. These are performed
 	// in private methods, seen below.
 	//
-	// Also, the curr_frame and num_frames provided by the AnimatedInterface are
-	// largely ignored; instead, the getNumberFrames() method of its enclosed
-	// image is used, in case the image is a complex sequence with animations of
-	// varying lengths.
+	// Also, the num_frames provided by the AnimatedInterface is largely 
+	// ignored; instead, the getNumberFrames() method of its enclosed image is
+	// used, in case the image is a complex sequence with animations of varying 
+	// lengths.
 	//
-	// Since the current frame is calculated entirely off of time, there is no
-	// need to know the frame that the image thinks it should be on.
+	// A separate curr_frame from its animated image is maintained, to allow for
+	// multiple animations on the same image. Since the current frame is
+	// calculated entirely off of time, there is no need to know the frame that
+	// the image thinks it should be on.
 	{
 		if (playbackSporadic && playbackStopped)
 		// If in sporadic mode, try to start the animation.
