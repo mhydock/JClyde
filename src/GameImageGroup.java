@@ -1,6 +1,6 @@
 //==============================================================================
 // Date Created:		25 November 2011
-// Last Updated:		26 November 2011
+// Last Updated:		19 December 2011
 //
 // File Name:			GameImageGroup.java
 // File Author:			M Matthew Hydock
@@ -23,6 +23,8 @@
 //						descendents) in mind.
 //==============================================================================
 
+import java.awt.*;
+import java.awt.image.*;
 import java.util.ArrayList;
 
 public class GameImageGroup extends GameImageStrip
@@ -67,7 +69,7 @@ public class GameImageGroup extends GameImageStrip
 	// Creates the array of GameImageStrips, and creates and loads a
 	// GameImageGrid (a grid-based descendent of GameImageStrip) into it.
 	{
-		GameImageGrid temp = new GameImageGrid(path,rows,columns)
+		GameImageGrid temp = new GameImageGrid(path,rows,columns);
 		
 		strips = new ArrayList<GameImageStrip>();
 		strips.add(temp);
@@ -75,7 +77,7 @@ public class GameImageGroup extends GameImageStrip
 		curr_strip = 0;
 	}
 	
-	public GameImageGroup(ArrayList<GameImageStrips> a)
+	public GameImageGroup(ArrayList<GameImageStrip> a)
 	// An array of GameImageStrips has already been provided, so just copy it.
 	{
 		strips = a;

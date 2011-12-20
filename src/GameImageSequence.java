@@ -1,6 +1,6 @@
 //==============================================================================
 // Date Created:		25 November 2011
-// Last Updated:		26 November 2011
+// Last Updated:		19 December 2011
 //
 // File Name:			GameImageSequence.java
 // File Author:			M Matthew Hydock
@@ -12,6 +12,8 @@
 //						same dimensions, or even loaded in order.
 //==============================================================================
 
+import java.awt.*;
+import java.awt.image.*;
 import java.util.ArrayList;
 
 public class GameImageSequence extends GameImageStrip
@@ -206,7 +208,7 @@ public class GameImageSequence extends GameImageStrip
 //==============================================================================
 
 	
-	public void draw(Graphics2d g, int x, int y)
+	public void draw(Graphics g, int x, int y)
 	{
 		if (frames != null && frames.size() != 0)
 			frames.get(curr_frame).draw(g,x,y);

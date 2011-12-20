@@ -1,6 +1,6 @@
 //==============================================================================
 // Date Created:		17 December 2011
-// Last Updated:		17 December 2011
+// Last Updated:		19 December 2011
 //
 // File Name:			ClydesAdventure.java
 // File Author:			M Matthew Hydock
@@ -28,7 +28,7 @@ import java.awt.event.*;
 public class ClydesAdventure extends JFrame implements WindowListener
 {
 	private static int DEFAULT_FPS = 30;		// 40 is too fast! 
-	private ClydePane cp;						// Panel to draw and control the game.
+	private ClydePanel cp;						// Panel to draw and control the game.
 
 	public ClydesAdventure(long period, boolean windowed)
 	{
@@ -41,7 +41,7 @@ public class ClydesAdventure extends JFrame implements WindowListener
 			// and then start the game in windowed mode.
 			{
 				System.out.println("Full-screen exclusive mode not supported");
-				initWindowed()
+				initWindowed();
 			}
 			else
 				initFullScreen();

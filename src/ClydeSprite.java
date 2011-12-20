@@ -14,7 +14,7 @@
 //==============================================================================
 
 import java.awt.*;
-
+import javax.swing.*;
 
 public class ClydeSprite extends Sprite
 {
@@ -113,7 +113,7 @@ public class ClydeSprite extends Sprite
 	{
 		startLooping();
 		
-		dx = HORZ_VELOCITY()
+		dx = HORZ_VELOCITY();
 		isFacingRight = true;
 		isSitting = false;
 		isStill = false;
@@ -479,7 +479,7 @@ public class ClydeSprite extends Sprite
 		// The sprite has no image, so draw a yellow circle instead.
 		{
 			g.setColor(Color.yellow);
-			g.fillOval(locx+xOffset, locy+yOffset, SIZE, SIZE);
+			g.fillOval(xPos+xOffset, yPos+yOffset, SIZE, SIZE);
 		}
 		else
 		{
@@ -492,13 +492,13 @@ public class ClydeSprite extends Sprite
 			{
 				int x = xPos+xOffset;
 				int y = xPos+yOffset;
-				int w = image.frameWidth();
-				int h = image.frameHeight();
+				int w = image.getFrameWidth();
+				int h = image.getFrameHeight();
 				int r = ((GameImageGrid)image).getCurrentRow();
 				int c = image.getCurrentFrame();
 					
-				g.draw(image.getImage(),x,y,x+w,y+h,
-						(c+1)*w,(r+1)*h,c*w,r*h,null);
+				g.drawImage(image.getImage(),x,y,x+w,y+h,
+							(c+1)*w,(r+1)*h,c*w,r*h,null);
 			}
 		}
 	}

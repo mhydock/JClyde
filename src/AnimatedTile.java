@@ -1,6 +1,6 @@
 //==============================================================================
 // Date Created:		18 November 2011
-// Last Updated:		18 December 2011
+// Last Updated:		19 December 2011
 //
 // File Name:			AnimatedTile.java
 // File Author:			M Matthew Hydock
@@ -10,7 +10,9 @@
 //						for the sake of clarity.
 //==============================================================================
 
-public class AnimatedTile
+import java.awt.*;
+
+public class AnimatedTile extends Tile
 {
 	private GameImageStrip image;		// To override the Tile class's image (which is private).
 	private GameAnimation animation;	// Object to animate this tile's image.
@@ -48,7 +50,7 @@ public class AnimatedTile
 			animation.animateObject(image);
 	}
 	
-	public void getAnimation()
+	public GameAnimation getAnimation()
 	// Get the GameAnimation responsible for animating the image strip.
 	{
 		return animation;

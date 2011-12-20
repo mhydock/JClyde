@@ -1,6 +1,6 @@
 //==============================================================================
 // Date Created:		24 November 2011
-// Last Updated:		15 December 2011
+// Last Updated:		19 December 2011
 //
 // File Name:			GameImage.java
 // File Author:			M Matthew Hydock
@@ -10,11 +10,13 @@
 //==============================================================================
 
 import java.awt.*;
-import java.imageio.*;
+import java.awt.image.*;
+import javax.imageio.*;
 
 public class GameImage
 {
 	protected static GraphicsConfiguration gc;
+	protected static GraphicsEnvironment ge;
 
 	protected String name;
 	protected BufferedImage image;
@@ -28,7 +30,10 @@ public class GameImage
 	// Create a null GameImage.
 	{
 		if (gc == null)
+		{
+			ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 			gc = ge.getDefaultScreenDevice().getDefaultConfiguration();
+		}
 			
 		name	= "";
 		image	= null;
@@ -40,7 +45,10 @@ public class GameImage
 	// Create a new BufferedImage, and record its dimensions.
 	{
 		if (gc == null)
+		{
+			ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 			gc = ge.getDefaultScreenDevice().getDefaultConfiguration();
+		}
 
 		setImage(path);
 	}
@@ -50,7 +58,10 @@ public class GameImage
 	// GameImage will have no name.
 	{
 		if (gc == null)
+		{
+			ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 			gc = ge.getDefaultScreenDevice().getDefaultConfiguration();
+		}
 
 		setImage(i);
 	}
@@ -106,9 +117,9 @@ public class GameImage
 			image	= gc.createCompatibleImage(im.getWidth(),im.getHeight(),transparency);
 			
 			// Try to find the last directory separator.
-			int i = path.lastInstanceOf("/");
+			int i = path.lastIndexOf("/");
 			if (i == -1)
-				i = path.lastInstanceOf("\\");
+				i = path.lastIndexOf("\\");
 			if (i == -1)
 				i = 0;
 			
@@ -125,10 +136,10 @@ public class GameImage
 			width = image.getWidth();
 			height = image.getHeight();
 		}
-		catch(IOException e)
+		catch(Exception e)
 		// There was an error somewhere, nullify the GameImage's properties.
 		{
-			System.out.println("Load Image error for " + path":\n" + e);
+			System.out.println("Load Image error for " + path + ":\n" + e);
 			name = null;
 			width = -1;
 			height = -1;
@@ -168,14 +179,14 @@ public class GameImage
 //==============================================================================
 
 	
-	public void draw(Graphics2D g, int x, int y)
+	public void draw(Graphics g, int x, int y)
 	// Draw the entire image at (x,y)
 	{
 		if (image != null)
 			g.drawImage(image,x,y,null);
 	}
 	
-	public void draw(Graphics2D g, int dx,  int dy, int sx, int sy, int w, int h)
+	public void draw(Graphics g, int dx,  int dy, int sx, int sy, int w, int h)
 	// Draw only a part of the image.
 	// (dx,dy)	= destination coordinates
 	// (sx,sy)	= internal image coordinates
@@ -185,8 +196,8 @@ public class GameImage
 		{
 			// Ensure it doesn't draw garbage, or stretch a slice to fill a
 			// large space.
-			w2 = Math.min(w, width-sx);
-			y2 = Math.min(h, height-sy);
+			int w2 = Math.min(w, width-sx);
+			int h2 = Math.min(h, height-sy);
 			
 			g.drawImage(image,dx,dy,dx+w2,dy+h2,sx,sy,sx+w2,sy+h2,null);
 		}

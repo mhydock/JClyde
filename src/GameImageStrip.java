@@ -1,6 +1,6 @@
 //==============================================================================
 // Date Created:		24 November 2011
-// Last Updated:		10 December 2011
+// Last Updated:		19 December 2011
 //
 // File Name:			GameImageStrip.java
 // File Author:			M Matthew Hydock
@@ -9,8 +9,16 @@
 //						organized as a strip of subimages (simple animation).
 //==============================================================================
 
-public class GameImageStrip extends GameImage implements AnimatedInterface
-{	
+import java.awt.*;
+import java.awt.image.*;
+
+public class GameImageStrip extends GameImage implements AnimationInterface
+{
+	protected int num_frames;		// Number of frames in this strip.
+	protected int curr_frame;		// Current frame of the strip.
+	protected int frame_width;		// Width of a frame (image width/#frames)
+	protected int frame_height;		// Height of a frame (image height).
+
 //==============================================================================
 // Constructors.
 //==============================================================================
@@ -169,7 +177,7 @@ public class GameImageStrip extends GameImage implements AnimatedInterface
 //==============================================================================
 
 
-	public void draw (Graphics2D g, int x, int y)
+	public void draw (Graphics g, int x, int y)
 	// Draw the current frame at location (x,y).
 	{
 		if (image != null)

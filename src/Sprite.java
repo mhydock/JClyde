@@ -1,6 +1,6 @@
 //==============================================================================
 // Date Created:		10 December 2011
-// Last Updated:		15 December 2011
+// Last Updated:		19 December 2011
 //
 // File Name:			Sprite.java
 // File Author:			M Matthew Hydock
@@ -55,7 +55,7 @@ public class Sprite extends GameLayer
 		image = i;
 		
 		// Animate the given image strip, setting it to repeat in normal mode.
-		animator = new GameAnimation(i,FRAME_DUR,GameAnimation.Mode.REPEAT,false);
+		animator = new GameAnimation(i,FRAME_DUR,GameAnimation.Mode.REPEAT,false,false);
 		
 		// Save a reference to the parent panel.
 		parent = p;

@@ -11,18 +11,18 @@
 //						slower, nearer == move faster).
 //==============================================================================
 
-import java.swing.*;
+import javax.swing.*;
 
 public abstract class GameLayer
 {
-	private JPanel parent;				// JPanel that displays this layer.
+	protected JPanel parent;			// JPanel that displays this layer.
 
-	private int xOffset;				// Camera offset; where to draw the layer.
-	private int yOffset;				// Camera offset; where to draw the layer.
+	protected int xOffset;				// Camera offset; where to draw the layer.
+	protected int yOffset;				// Camera offset; where to draw the layer.
 
-	private double depth;				// How far away from the camera this
+	protected double depth;				// How far away from the camera this
 										// layer is. 0 is camera level.
-	private double move_factor;			// How fast or slow the layer scrolls.
+	protected double move_factor;		// How fast or slow the layer scrolls.
 										// A function of the layer depth.
 										
 	public GameLayer(int d, JPanel p)
@@ -34,20 +34,20 @@ public abstract class GameLayer
 		setDepth(d);
 	}
 	
-	public int getDepth()
+	public double getDepth()
 	// Get the depth of the layer.
 	{
 		return depth;
 	}
 	
-	public void setDepth(int d)
+	public void setDepth(double d)
 	// Set the depth of the layer and recalculate the move_factor.
 	{
-		depth = l;
+		depth = d;
 		move_factor = Math.pow(2.0,d)/Math.pow(3.0,d);
 	}
 	
-	public int getMoveFactor()
+	public double getMoveFactor()
 	// Get the movement factor, a scalar that affects how fast or slow the layer
 	// moves.
 	{
@@ -70,8 +70,8 @@ public abstract class GameLayer
 	// Set the layer offsets. They will be multiplied by the movement factor to
 	// simulate real depth.
 	{
-		xOffset = x*move_factor;
-		yOffset = y*move_factor;
+		xOffset = (int)(x*move_factor);
+		yOffset = (int)(y*move_factor);
 	}
 	
 	public int getXOffset()

@@ -22,7 +22,7 @@ public abstract class HazardTile extends AnimatedTile
 		damage = d;
 		
 		// Need to be able to stand within the tile to cause damage.
-		isCollidable = false.
+		isCollidable = false;
 	}
 	
 	public void setDamage(int d)
@@ -42,3 +42,4 @@ public abstract class HazardTile extends AnimatedTile
 	{
 		s.takeDamage(damage);
 	}
+}

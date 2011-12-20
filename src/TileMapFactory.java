@@ -11,9 +11,10 @@
 //						Andrew Davison ad@fivedots.coe.psu.ac.th
 //==============================================================================
 
+import java.awt.image.*;
+import javax.swing.*;
 import java.util.*;
 import java.io.*;
-
 
 public class TileMapFactory
 {
@@ -68,7 +69,7 @@ public class TileMapFactory
 		resetFactory();
 	}
 	
-	public static TileMapFactory getInstance()
+	public static TileMapFactory getInstanceOf()
 	// Return a reference to this object.
 	{
 		if (factory == null)

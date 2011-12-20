@@ -16,6 +16,7 @@
 
 import java.awt.*;
 import java.awt.image.*;
+import javax.swing.*;
 import java.util.*;
 
 public class TileMap extends GameLayer
@@ -42,7 +43,7 @@ public class TileMap extends GameLayer
 	// layer and the size of a tile, which will be the on-screen space reserved
 	// when drawing a single tile.
 	{
-		super(d,p)
+		super(d,p);
 		
 		numRows = map.length;
 		numCols = map[0].length;
@@ -203,7 +204,7 @@ public class TileMap extends GameLayer
 		if (x >= 0 && x < getMapWidth() && y >= 0 && y < getMapHeight())
 			return tilemap[y/tile_size][x/tile_size];
 			
-		return null
+		return null;
 	}
 	
 	public boolean insideSolidTile(int x, int y)

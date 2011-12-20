@@ -1,6 +1,6 @@
 //==============================================================================
 // Date Created:		14 December 2011
-// Last Updated:		17 December 2011
+// Last Updated:		19 December 2011
 //
 // File Name:			ClydePanel.java
 // File Author:			M Matthew Hydock
@@ -24,9 +24,10 @@ import javax.swing.*;
 import java.awt.image.*;
 import java.awt.event.*;
 import java.awt.*;
+import java.util.*;
 
 
-public class ClydePanel extends JPanel implements Runnable, ImagesPlayerWatcher
+public class ClydePanel extends JPanel implements Runnable
 {
 //==============================================================================
 // Constants and external variables.
@@ -77,6 +78,9 @@ public class ClydePanel extends JPanel implements Runnable, ImagesPlayerWatcher
 	// to display the title/help screen
 	private boolean showHelp;
 	private GameImage helpIm;
+	
+	// Loads the tilemap.
+	private TileMapFactory mapLoader;
 //==============================================================================
 
 
@@ -91,7 +95,7 @@ public class ClydePanel extends JPanel implements Runnable, ImagesPlayerWatcher
 
 		setDoubleBuffered(false);
 		setBackground(Color.white);
-		setPreferredSize(parent.getDimensions());
+		setPreferredSize(parent.getWidth(),parent.getHeight());
 
 		setBufferStrategy();
 
@@ -113,12 +117,13 @@ public class ClydePanel extends JPanel implements Runnable, ImagesPlayerWatcher
 			}
 		});
 
-		// Loaders.
-     	mapLoader	= TileMapFactory.getInstanceOf();
-     	imageLoader	= GameImageFactory.getInstanceOf();
+		// Map loader.
+     	mapLoader = TileMapFactory.getInstanceOf();
+		mapLoader.setInputFile(TILE_MAP);
+		mapLoader.setParent(this);
      
-		// Initialise the game entities
-		tilemap = mapLoader.buildMap(TILE_MAP);
+		// Initialize the game entities.
+		tilemap = mapLoader.produceTileMap();
 		clyde = new ClydeSprite(new GameImageGrid(CLYDE,4,3),tilemap,
 								tilemap.getStartX()*tilemap.getTileSize(),
 								tilemap.getStartY()*tilemap.getTileSize(),this);
@@ -128,7 +133,7 @@ public class ClydePanel extends JPanel implements Runnable, ImagesPlayerWatcher
 		ribbons.add(new Ribbon(new GameImage(CLOUDS),2,true,false,this));
 		ribbons.add(new Ribbon(new GameImage(MOUNTAINS),1,true,false,this));
 		
-		// Align the ribbons to the bottom of the tilemap.
+		// Align the ribbons to the bottom left of the tilemap.
 		for (int i = 0; i < ribbons.size(); i++)
 			ribbons.get(i).setPosition(0,tilemap.getMapHeight()-ribbons.get(i).getHeight());
 

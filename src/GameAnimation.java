@@ -44,12 +44,12 @@
 
 import java.awt.image.*;
 
-public class GameAnimation implements AnimatedInterface, Cloneable
+public class GameAnimation implements AnimationInterface, Cloneable
 {
 	public static enum Mode {ONCE, REPEAT, PINGPONG};
 	
-	private static final DEFAULT_FREQ = .5;	// The default chance the animation will
-											// be run, if in sporadic mode.
+	// The default chance the animation will be run, if in sporadic mode.
+	private static final double DEFAULT_FREQ = .5;	
 
 	private Mode anim_mode;					// What playback mode the animation is in.
 	private boolean playbackStopped;		// Is the animation currently stopped?
@@ -58,7 +58,7 @@ public class GameAnimation implements AnimatedInterface, Cloneable
 	private double playbackFrequency;		// How often the animation should be played
 											// while in sporadic mode.
 		
-	private AnimatedInterface anim_image;	// Animatable image to control.
+	private AnimationInterface anim_image;	// Animatable image to control.
 
 	private int frameDuration;				// Length of time to display the current frame.
 	private long seqDuration;				// Total duration of the entire image sequence (in msecs)
@@ -67,11 +67,13 @@ public class GameAnimation implements AnimatedInterface, Cloneable
 	private long prevTime;					// Last time recorded.
 	private long currTime;					// Current time.
 	private long timeDiff;					// Difference between current time and last time.
+	
+	private int curr_frame;					// Current frame of the animation.
 
 //==============================================================================
 // Constructor.
 //==============================================================================	
-	public GameAnimation(AnimatedInterface ai, int frame_time, Mode mode, boolean isRev, boolean isSpo)
+	public GameAnimation(AnimationInterface ai, int frame_time, Mode mode, boolean isRev, boolean isSpo)
 	// Constructor for the heavily modified ImagePlayer, now refered to as
 	// GameAnimation. Big differences are that it asks directly for a GameImage
 	// (in the form of an AnimatedInterface), the duration of a frame (instead
@@ -84,7 +86,7 @@ public class GameAnimation implements AnimatedInterface, Cloneable
 		anim_image		= ai;
 		
 		// If the given frame duration is 0 or smaller, then default to 100ms.
-		frameDuration	= (frame_time > 0)frame_time:100;
+		frameDuration	= (frame_time > 0)?frame_time:100;
 		animTotalTime	= 0L;
 
 		prevTime = System.currentTimeMillis();
@@ -115,28 +117,13 @@ public class GameAnimation implements AnimatedInterface, Cloneable
 // Getters and Setters.	If you want to get, set, or "know" something about this
 // object, you can do it with these.
 //==============================================================================
-	public boolean isBroken()
-	// Returns whether the animation actually has something to animate or not.
+//------------------------------------------------------------------------------
+// AnimationInterface methods.
+//------------------------------------------------------------------------------
+	public void setCurrentFrame(int c)
+	// The interface requires this. Just a wrapper to restartAt().
 	{
-		return (anim_image == null);
-	}
-	
-	public void animateObject(AnimatedInterface ai)
-	// Change the object being animated, and recalculate its data.
-	{
-		anim_image = ai;
-		
-		refreshData();
-	}
-	
-	public BufferedImage getCurrentImage()
-	// Returns a BufferedImage of the current frame, relying on the enclosed
-	// image to return/generate the appropriate image.
-	{
-		if (anim_image != null)
-			return anim_image.getFrameSubImage(); 
-
-		return null; 
+		restartAt(c);
 	}
 
 	public int getCurrentFrame()
@@ -149,15 +136,56 @@ public class GameAnimation implements AnimatedInterface, Cloneable
 	// Return the max number of frames in the animatable image.
 	{
 		if (anim_image != null)
-			return anim_image.getNumFrames();
+			return anim_image.getNumberFrames();
 			
 		return 0;
 	}
 	
-	public void setWatcher(ImagesPlayerWatcher w)
-	// Sets the ImagesPlayerWatcher. Does anything even use this?
+	public int getFrameWidth()
+	// Wrapper to access the internal image's frame width.
 	{
-		watcher = w;
+		if (anim_image != null)
+			return anim_image.getFrameWidth();
+			
+		return 0;
+	}
+	
+	public int getFrameHeight()
+	// Wrapper to access the internal image's frame height.
+	{
+		if (anim_image != null)
+			return anim_image.getFrameHeight();
+			
+		return 0;
+	}
+	
+	public BufferedImage getFrameSubImage()
+	// Returns a BufferedImage of the current frame, relying on the enclosed
+	// image to return/generate the appropriate image.
+	{
+		if (anim_image != null)
+			return anim_image.getFrameSubImage(); 
+
+		return null; 
+	}
+//------------------------------------------------------------------------------
+
+
+//------------------------------------------------------------------------------
+// Methods specific to GameAnimation.
+//------------------------------------------------------------------------------
+	public boolean isBroken()
+	// Returns whether the animation actually has something to animate or not.
+	{
+		return (anim_image == null);
+	}
+	
+	public void animateObject(AnimationInterface ai)
+	// Change the object being animated, and recalculate its data.
+	{
+		anim_image = ai;
+		
+		refreshData();
 	}
 	
 	public void setFrameDuration(int f)
@@ -185,7 +213,7 @@ public class GameAnimation implements AnimatedInterface, Cloneable
 	{
 		if (anim_image != null)
 			return ((curr_frame >= anim_image.getNumberFrames()-1) || 
-					(playbackReversed && curr_frame <= 0)) && (anim_mode == ONCE));
+					(playbackReversed && curr_frame <= 0)) && (anim_mode == Mode.ONCE);
 		
 		return true;
 	}
@@ -237,7 +265,6 @@ public class GameAnimation implements AnimatedInterface, Cloneable
 		if (anim_image == null)
 		{
 			System.out.println("Animateable Game Image not provided");
-			num_frames = 0;
 			curr_frame = -1;
 			playbackStopped = true;
 		}
@@ -245,12 +272,12 @@ public class GameAnimation implements AnimatedInterface, Cloneable
 		// Otherwise, initialize the animation's times and frame limits.
 		else
 		{
-			num_frames = ai.getNumberFrames();
 			curr_frame = 0;
-			seqDuration = frameDuration*num_frames;
+			seqDuration = frameDuration*anim_image.getNumberFrames();
 			playbackStopped = false;
 		}
 	}
+//------------------------------------------------------------------------------
 //==============================================================================
 
 
@@ -330,7 +357,7 @@ public class GameAnimation implements AnimatedInterface, Cloneable
 			curr_frame = start;
 			
 			// Calculate a suitable animation time.
-			animTotalTime = (long) curr_frame * showPeriod;
+			animTotalTime = (long) curr_frame * frameDuration;
 			playbackStopped = false;
 		}
 	}
@@ -369,7 +396,7 @@ public class GameAnimation implements AnimatedInterface, Cloneable
 			// animation begins immediately.
 			{
 				animTotalTime = 0;
-				prevTime -= showPeriod;
+				prevTime -= frameDuration;
 			}
 		}
 		
@@ -378,7 +405,7 @@ public class GameAnimation implements AnimatedInterface, Cloneable
 		timeDiff = currTime-prevTime;
 		
 		// If it hasn't been long enough, return.
-		if (timeDiff < showPeriod)
+		if (timeDiff < frameDuration)
 			return;
 		
 		if (!playbackStopped)
@@ -387,7 +414,7 @@ public class GameAnimation implements AnimatedInterface, Cloneable
 			animTotalTime = (animTotalTime+timeDiff);
 
 			// Calculate current frame. May be outside range (fixed further down).
-			curr_frame = (int)(animTotalTime/showPeriod);
+			curr_frame = (int)(animTotalTime/frameDuration);
 			
 			// End of animation has been reached, what do?
 			if	(curr_frame >= anim_image.getNumberFrames()-1 ||
@@ -407,11 +434,11 @@ public class GameAnimation implements AnimatedInterface, Cloneable
 				
 			// This class is pretty meta. This makes sure the underlying image
 			// knows what frame to display, if it's ever asked directly.
-			ai.setCurrentFrame(curr_frame);
+			anim_image.setCurrentFrame(curr_frame);
 		}
 	}
 	
-	private int normalPlayback()
+	private void normalPlayback()
 	// Update and manage the animation in a normal manner.
 	{
 		// If the animation is not on repeat or ping-pong, stop.

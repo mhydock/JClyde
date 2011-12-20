@@ -1,6 +1,6 @@
 //==============================================================================
 // Date Created:		24 November 2011
-// Last Updated:		10 December 2011
+// Last Updated:		19 December 2011
 //
 // File Name:			GameImageGrid.java
 // File Author:			M Matthew Hydock
@@ -12,6 +12,7 @@
 
 import java.io.*;
 import java.awt.*;
+import java.awt.image.*;
 
 public class GameImageGrid extends GameImageStrip
 {
@@ -111,7 +112,7 @@ public class GameImageGrid extends GameImageStrip
 	{
 		if (image != null)
 		{
-			(rows > 1)?rows:1;	
+			rows = (r > 1)?r:1;	
 			refreshData();
 		}
 	}

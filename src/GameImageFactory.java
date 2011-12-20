@@ -30,7 +30,7 @@ public class GameImageFactory
 	private static boolean inputEnd;
 	private static String curr_line;
 	
-	private static GameImagesFactory factory;
+	private static GameImageFactory factory;
 
 //==============================================================================
 // Set up the GameImageFactory.
