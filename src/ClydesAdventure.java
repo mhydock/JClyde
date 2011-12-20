@@ -1,124 +1,315 @@
 //==============================================================================
-// Date Created:		17 December 2011
-// Last Updated:		19 December 2011
+// Date Created:		14 December 2011
+// Last Updated:		20 December 2011
 //
 // File Name:			ClydesAdventure.java
 // File Author:			M Matthew Hydock
 //
-// File Description:	JFrame to display and manage Clyde's Adventure,	a
-//						sidescroller originally programmed for DOS.
+// File Description:	The drawing surface/input manager for Clyde's Adventure,
+//						a sidescroller originally programmed for DOS.
 //
-//						The JFrame supports display in both windowed and full
-//						screen exclusive mode. If the display doesn't support
-//						full screen exclusive mode, it the frame will default to
-//						windowed mode.
+//						The goal of Clyde's Adventure is to guide Clyde through
+//						a maze-like castle in his search for a hidden treasure,
+//						and to collect gems along the way. Clyde's health is
+//						depleted with every step, so there is a need to find the
+//						treasure and reach the exit in the most efficient manner
+//						possible. He must also avoid traps and hazards, and
+//						solve numerous puzzles, to succeed in his quest.
 //
-//						A gameplay description can be found in ClydePanel.java
-//						Controls can be viewed on the help screen.
-//
-//						This class was largely based on the JumpingJack class,
+//						This class is largely based on the JackPanel class
 //						written by Andrew Davison, ad@fivedots.coe.psu.ac.th
+//
+//						It was partially merged with a modified JumpingJack
+//						class, (also written by Andrew Davison), but all of the
+//						generic game control code has been isolated and placed
+//						into another class, which this class inherits from.
 //==============================================================================
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.*;
+import java.awt.*;
+import java.util.*;
 
-
-public class ClydesAdventure extends JFrame implements WindowListener
+public class ClydesAdventure extends GameFrame
 {
-	private static int DEFAULT_FPS = 30;		// 40 is too fast! 
-	private ClydePanel cp;						// Panel to draw and control the game.
+//==============================================================================
+// Constants and external variables.
+//==============================================================================
+	// Files to be loaded for the test level.
+	private static final String HELP_SCREEN = "../data/help.png";
+	private static final String TILE_MAP = "../data/maps/testmap.txt";
+	private static final String CLYDE = "../data/sprites/clyde.png";
+	private static final String MOUNTAINS = "../data/ribbons/mountains.png";
+	private static final String CLOUDS = "../data/ribbons/clouds.png";
+//==============================================================================
 
-	public ClydesAdventure(long period, boolean windowed)
+
+//==============================================================================
+// Internal objects and variables.
+//==============================================================================
+	private ClydeSprite clyde;					// The hero sprite.
+	private ArrayList<Ribbon> ribbons;			// The scrolling backgrounds.
+	private TileMap tilemap;					// The tilemap.
+
+	// For displaying messages
+	private Font msgsFont;
+	private FontMetrics metrics;
+
+	// to display the title/help screen
+	private boolean showHelp;
+	private GameImage helpIm;
+	
+	// Loads the tilemap.
+	private TileMapFactory mapLoader;
+//==============================================================================
+
+
+//==============================================================================
+// Game initialization.
+//==============================================================================
+	public ClydesAdventure(int fps, boolean windowed)
+	// Create a JPanel to display and control Clyde's Adventure.
 	{
-		super("Clyde's Adventure");
-
-		if (!windowed)
-		{
-			if (!gd.isFullScreenSupported())
-			// If the display doesn't support full screen, display a warning,
-			// and then start the game in windowed mode.
-			{
-				System.out.println("Full-screen exclusive mode not supported");
-				initWindowed();
-			}
-			else
-				initFullScreen();
-		}
-		else
-			initWindowed();
+		super("Clyde's Adventure",fps,windowed);
 		
-		// Add the panel after the frame has been initialized, so it can get
-		// the proper width and height values.
-		Container c = getContentPane();			// Default BorderLayout used.
-		cp = new ClydePanel(this, period);
-		c.add(jp, "Center");
-	}
+		// Add this object a keylistener.
+		addKeyListener(this);
 
-	private void initWindowed()
-	// Set up the frame for windowed mode.
+		initGameObjects();
+		
+		startGame();
+	}
+		
+	private void initGameObjects()
+	// Initialize the sprite, tilemap, and background layers, along with game
+	// state variables and font settings.
 	{
-		addWindowListener(this);
-		pack();
-		setSize(640,480);
-		setIgnoreRepaint(true);					// Turn off all paint events.
-		setResizable(false);					// Prevent frame resizing.
-		setVisible(true);
+		// Map loader.
+     	mapLoader = TileMapFactory.getInstanceOf();
+		mapLoader.setInputFile(TILE_MAP);
+		mapLoader.setParent(this);
+     
+		// Initialize the game entities.
+		tilemap = mapLoader.produceTileMap();
+		clyde = new ClydeSprite(new GameImageGrid(CLYDE,4,3),tilemap,
+								tilemap.getStartX()*tilemap.getTileSize(),
+								tilemap.getStartY()*tilemap.getTileSize(),this);
+
+		// Initialize the ribbons (needs special attention).
+		ribbons = new ArrayList<Ribbon>();
+		ribbons.add(new Ribbon(new GameImage(CLOUDS),2,true,false,this));
+		ribbons.add(new Ribbon(new GameImage(MOUNTAINS),1,true,false,this));
+		
+		// Align the ribbons to the bottom left of the tilemap.
+		for (int i = 0; i < ribbons.size(); i++)
+
+			ribbons.get(i).setPosition(0,tilemap.getMapHeight()-ribbons.get(i).getHeight());
+
+		// Prepare/display title/help screen.
+		helpIm = new GameImage(HELP_SCREEN);
+    	showHelp = true;
+    	isPaused = true;
+
+		// Set up message font
+		msgsFont = new Font("SansSerif", Font.BOLD, 24);
+		metrics = this.getFontMetrics(msgsFont);
+	}
+//==============================================================================
+
+
+//==============================================================================
+// Panel control methods.
+//==============================================================================
+	private void gameUpdate()
+	// Update game objects and adjust the viewport. 
+	{ 
+		if (!isPaused && !gameOver)
+		{
+			// Update the environment, and the hero sprite.
+			tilemap.update();
+			clyde.updateSprite();
+			
+			// Shift the view.
+			generateOffsets();
+			
+			// Check to see if an end-game scenario has been reached.
+			int xPos = clyde.getXPos()/tilemap.getTileSize();
+			int yPos = clyde.getYPos()/tilemap.getTileSize();
+			int distanceToExit = Math.sqrt(Math.pow(xPos-tilemap.getExitX(),2)+Math.pow(yPos-tilemap.getExitY(),2));
+			if (clyde.getHealth() == 0 || distanceToExit < 5)
+				gameOver = true;
+		}
 	}
 	
-	private void initFullScreen()
-	// Set up the frame to be full screen.
+	private void generateOffsets()
+	// Create and apply offsets, making the panel act as a sort of camera.
 	{
-		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		gd = ge.getDefaultScreenDevice();
+		// Find the middle of the screen.
+		int xOffset = getWidth()/2-clyde.getXPos();
+		int yOffset = getHeight()/2-clyde.getYPos();
 		
-		setUndecorated(true);					// No menu bar, borders, etc.
-		setIgnoreRepaint(true);					// Turn off all paint events.
-		setResizable(false);					// Prevent frame resizing.
+		// Try to shift the character and the environment to the middle. If the
+		// offsets move the tilemap away from the edges, force the offsets to
+		// align to the edges.
+		if (xOffset > 0)
+			xOffset = 0;
+		else if (xOffset < -(tilemap.getMapWidth()-getWidth()))
+			xOffset = -(tilemap.getMapWidth()-getWidth());
+			
+		if (yOffset > 0)
+			yOffset = 0;
+		else if (yOffset < -(tilemap.getMapHeight()-getHeight()))
+			yOffset = -(tilemap.getMapWidth()-getWidth());
 		
-		gd.setFullScreenWindow(this);			// Switch on full-screen exclusive mode
+		// Apply the offsets to all of the visible game objects.	
+		clyde.setOffsets(xOffset,yOffset);
+		tilemap.setOffsets(xOffset,yOffset);
+		for (int i = 0; i < ribbons.size(); i++)
+			ribbons.get(i).setOffsets(xOffset,yOffset);
 	}
+//==============================================================================
 
 
 //==============================================================================
-// Window listener methods.
+// Drawing methods.
+//==============================================================================	
+	private void gameRender(Graphics g)
+	// Render the game graphics.
+	{
+		// Draw a white background
+		g.setColor(Color.white);
+		g.fillRect(0, 0, getWidth(), getHeight());
+
+		// Draw the game elements; order is important.
+		for (int i = 0; i < ribbons.size(); i++)
+			ribbons.get(i).display(g);
+		tilemap.display(g);
+		clyde.drawSprite(g);
+
+		drawStatus(g);
+
+		if (gameOver && clyde.getHealth() > 0)
+			victoryScreen(g);
+		if (gameOver)
+			gameOverScreen(g);
+			
+		if (showHelp)		// Draw the help at the very front (if switched on).
+			helpIm.draw(g,	(getWidth()-helpIm.getWidth())/2, 
+							(getHeight()-helpIm.getHeight())/2);		
+	}
+
+	private void drawStatus(Graphics g)
+	// Status bar across the bottom of the screen. Displays the number of gems
+	// collected out of how many are in the level, along with how much health
+	// Clyde currently has.
+	{
+		g.setColor(Color.gray);
+		g.fillRect(0,getHeight()-45,getWidth(),getHeight());
+		g.setColor(Color.blue);
+		g.fillRect(5,getHeight()-40,getWidth()-5,getHeight()-5);
+  	
+		g.setFont(msgsFont);
+		g.setColor(Color.green);
+		g.drawString("Gems: " + clyde.getGems() + "/" + tilemap.getNumGems(), 15, getHeight()-25);
+		g.setColor(Color.gray);
+		g.drawString("Health: " + clyde.getHeath(), 215, getHeight()-25);
+	}
+
+	private void gameOverScreen(Graphics g)
+	// Display the game over screen.
+	{
+		String msg = "Don't give up!";
+
+		int x = (getWidth() - metrics.stringWidth(msg))/2; 
+		int y = (getHeight() - metrics.getHeight())/2;
+		
+		g.setColor(Color.black);
+		g.fillRect(0,0,getWidth(),getHeight());
+		g.setColor(Color.yellow);
+		g.setFont(msgsFont);
+		g.drawString(msg, x, y);
+	}
+
+	private void victoryScreen(Graphics g)
+	// Display the victory screen.
+	{
+		String msg = "Great Job!";
+
+		int x = (getWidth() - metrics.stringWidth(msg))/2; 
+		int y = (getHeight() - metrics.getHeight())/2;
+		
+		g.setColor(Color.black);
+		g.fillRect(0,0,getWidth(),getHeight());
+		g.setColor(Color.yellow);
+		g.setFont(msgsFont);
+		g.drawString(msg, x, y);
+	}
 //==============================================================================
-	public void windowActivated(WindowEvent e)
-	// What to do when the window is made active (was previously unfocused, but
-	// the user has clicked on it).
-	{
-		cp.resumeGame();
-	}
 
-	public void windowDeactivated(WindowEvent e)
-	// What to do when the window is made inactive (had focus, but the user has
-	// changed tasks).
-	{
-		cp.pauseGame();
-	}
 
-	public void windowDeiconified(WindowEvent e) 
-	// What to do if the window is restored from being minimized.
+//==============================================================================
+// KeyListener methods (Player controls)
+//==============================================================================
+	public void keyPressed(KeyEvent e)
+	// handles termination, help, and game-play keys
 	{
-		cp.resumeGame();
-	}
+		int keyCode = e.getKeyCode();
 
-	public void windowIconified(WindowEvent e)
-	// What to do if the window has been minimized.
+		// termination keys
+		// listen for esc, q, end, ctrl-c on the canvas to
+		// allow a convenient exit from the full screen configuration
+		if ((keyCode == KeyEvent.VK_ESCAPE) || (keyCode == KeyEvent.VK_Q) ||
+			(keyCode == KeyEvent.VK_END) || ((keyCode == KeyEvent.VK_C) && e.isControlDown()))
+			running = false;
+
+		// help controls
+		if (keyCode == KeyEvent.VK_H)
+		{
+			if (showHelp)
+			{  // help being shown
+				showHelp = false;  // switch off
+				isPaused = false;
+			}
+			else
+			{  // help not being shown
+				showHelp = true;    // show it
+				isPaused = true;    // isPaused may already be true
+			}
+		}
+
+		// game-play keys
+		if (!isPaused && !gameOver)
+		{
+			// move the sprite and ribbons based on the arrow key pressed
+			if (keyCode == KeyEvent.VK_LEFT)
+				clyde.moveLeft();
+			else if (keyCode == KeyEvent.VK_RIGHT)
+				clyde.moveRight();
+			else if (keyCode == KeyEvent.VK_UP)
+				clyde.doAction();
+			else if (e.isAltDown())
+				clyde.doMagic();
+			else if (e.isControlDown())
+				clyde.jump();
+		}
+	}
+	
+	public void keyReleased(KeyEvent e)
+	// What to do when the player stops holding down action buttons.
 	{
-		cp.pauseGame();
+		if (!isPaused && !gameOver)
+		{
+			// move the sprite and ribbons based on the arrow key pressed
+			if (keyCode == KeyEvent.VK_LEFT || keyCode == KeyEvent.VK_RIGHT)
+				clyde.stayStill();
+			else if (keyCode == KeyEvent.VK_ALT)
+				clyde.stopMagic();
+			else if (keyCode == KeyEvent.VK_CONTROL)
+				clyde.startFalling();
+		}
 	}
-
-	public void windowClosing(WindowEvent e)
-	// What to do when the window has been asked to close.
-	{
-		cp.stopGame();
-	}
-
-	// Here to complete the interface.
-	public void windowClosed(WindowEvent e) {}
-	public void windowOpened(WindowEvent e) {}
+	
+	public void keyTyped(KeyEvent e) {}
 //==============================================================================
 
 
@@ -129,11 +320,9 @@ public class ClydesAdventure extends JFrame implements WindowListener
 	// Set the period (time per frame update) and whether the game should be in
 	// windowed mode or full screen mode.
 	{ 
-		long period = (long)1000.0/DEFAULT_FPS;	// Time per frame, in msecs
 		boolean isWindowed = !(args.length == 1 && args[0].equals("fullscreen"));
 		
-		period *= 1000000L;						// ms --> nanosecs 
-		new ClydesAdventure(period, isWindowed);
+		new ClydesAdventure(30, isWindowed);
 	}
 //==============================================================================
 }

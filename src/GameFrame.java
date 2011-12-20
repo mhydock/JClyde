@@ -1,0 +1,328 @@
+//==============================================================================
+// Date Created:		19 December 2011
+// Last Updated:		20 December 2011
+//
+// File Name:			GameFrame.java
+// File Author:			M Matthew Hydock
+//
+// File Description:	An abstract class representing a generic game frame. It
+//						supports full screen and windowed mode, regulates frame
+//						updates, and listens to window events (if in windowed
+//						mode). Certain methods are left abstract, for descendant
+//						classes to implement.
+//==============================================================================
+
+import javax.swing.*;
+import java.awt.event.*;
+import java.awt.*;
+
+public abstract class GameFrame extends JFrame implements WindowListener, Runnable
+{
+//==============================================================================
+// Constants and regulators.
+//==============================================================================
+	private static final int NUM_DELAYS_PER_YIELD = 16;
+	// Number of frames with a delay of 0 ms before the animation thread yields
+	// to other running threads.
+
+	private static int DEFAULT_FPS = 30;
+	// Default frames per second.
+	
+	private static final int MAX_FRAME_SKIPS = 5;
+	// Number of frames that can be skipped in any one animation loop,
+	// i.e the games state is updated but not rendered
+	
+	private long period;                		// Period between drawing, in nanosecs.
+//==============================================================================
+
+
+//==============================================================================
+// Game control variables.
+//==============================================================================
+	private Thread animator;					// The thread that performs the animation.
+	private volatile boolean running = false;	// Used to stop the animation thread.
+	private volatile boolean isPaused = false;	// Used to pause the animation thread.
+	
+	// Used at game termination
+	private volatile boolean gameOver = false;
+
+	// off-screen rendering
+	private BufferStrategy bufferStrategy;
+	private Graphics buffer;
+//==============================================================================
+	
+	
+//==============================================================================
+// Initialization methods.
+//==============================================================================
+	public class GameFrame(String name, int fps, boolean windowed)
+	{
+		super(name);
+
+		if (!windowed)
+		{
+			if (!gd.isFullScreenSupported())
+			// If the display doesn't support full screen, display a warning,
+			// and then start the game in windowed mode.
+			{
+				System.out.println("Full-screen exclusive mode not supported");
+				initWindowed();
+			}
+			else
+			// Otherwise, the user has requested full screen, and it is
+			// supported, so start the game in full screen mode.
+				initFullScreen();
+		}
+		else
+			initWindowed();
+		
+		// Time per frame, in nanosecs.
+		if (fps >= DEFAULT_FPS)
+			period = (long)1000000000/fps;
+		else
+			period = (long)1000000000/DEFAULT_FPS;
+
+		setDoubleBuffered(false);
+		setBufferStrategy();
+
+		// Make this panel receive key events.
+		setFocusable(true);
+		requestFocus();
+	}
+	
+	private void initWindowed()
+	// Set up the frame for windowed mode.
+	{
+		addWindowListener(this);
+		pack();
+		setSize(640,480);
+		setIgnoreRepaint(true);					// Turn off all paint events.
+		setResizable(false);					// Prevent frame resizing.
+		setVisible(true);
+	}
+	
+	private void initFullScreen()
+	// Set up the frame to be full screen.
+	{
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		gd = ge.getDefaultScreenDevice();
+		
+		setUndecorated(true);					// No menu bar, borders, etc.
+		setIgnoreRepaint(true);					// Turn off all paint events.
+		setResizable(false);					// Prevent frame resizing.
+		
+		gd.setFullScreenWindow(this);			// Switch on full-screen exclusive mode
+	}
+	
+	private void setBufferStrategy()
+	// Attempt to set the BufferStrategy (for double buffering).
+	{
+		try
+		// Try to create a buffer strategy. Wait until it has been made.
+		{
+			EventQueue.invokeAndWait(new Runnable()
+			{
+				public void run()
+				{
+					createBufferStrategy(2);
+				}
+			});
+		}
+		catch (Exception e)
+		// Whoops! Something happened and a buffer strategy couldn't be made.
+		{
+			System.out.println("Error while creating buffer strategy");
+			System.exit(0);
+		}
+		
+		try
+		// Sleep to give time for the buffer strategy to be carried out.
+		{
+			Thread.sleep(500); // 0.5 sec
+		}
+		catch(InterruptedException ex){}
+		
+		bufferStrategy = getBufferStrategy();
+	}
+	
+	protected void startGame()
+	// Initialize and start the thread. 
+	{ 
+		if (animator == null || !running)
+		{
+			animator = new Thread(this);
+			animator.start();
+		}
+	}
+//==============================================================================
+
+
+//==============================================================================
+// Game life cycle methods, called by the JFrame's window listener methods.
+//==============================================================================
+	public void resumeGame()
+	// called when the JFrame is activated / deiconified
+	{
+		if (!showHelp)    // CHANGED
+			isPaused = false;  
+	} 
+
+	public void pauseGame()
+	// called when the JFrame is deactivated / iconified
+	{
+		isPaused = true;
+	} 
+
+	public void stopGame() 
+	// called when the JFrame is closing
+	{
+		running = false;
+	}
+//==============================================================================
+
+
+//==============================================================================
+// Game loop and game object update/render methods. Specifics are left abstract,
+// for descendent classes to implement.
+//==============================================================================
+	public void run()
+	// The frames of the animation are drawn inside the while loop.
+	{
+		// Initialize the timers and counters.
+		long beforeTime, afterTime, timeDiff, sleepTime;
+		long overSleepTime = 0L;
+		int noDelays = 0;
+		long excess = 0L;
+
+		beforeTime = System.nanoTime();
+
+		running = true;
+
+		while(running)
+		// Updating and rendering loop.
+		{
+			gameUpdate();					// Update the game data.
+			paintScreen();					// Render/Display the frame.
+
+			afterTime	= System.nanoTime();
+			timeDiff	= afterTime - beforeTime;
+			sleepTime	= (period - timeDiff) - overSleepTime;  
+
+			if (sleepTime > 0)
+			// Some time left in this cycle, sleep for a bit.
+			{
+				try 
+				{
+					Thread.sleep(sleepTime/1000000L);  // nano -> ms
+				}
+				catch(InterruptedException ex){}
+
+				overSleepTime = (System.nanoTime() - afterTime) - sleepTime;
+			}
+			else
+			// The frame took longer than desired to render. 
+			{
+				excess -= sleepTime;  // store excess time value
+				overSleepTime = 0L;
+
+				if (++noDelays >= NUM_DELAYS_PER_YIELD)
+				{
+					Thread.yield();   // give another thread a chance to run
+					noDelays = 0;
+				}
+			}
+
+			beforeTime = System.nanoTime();
+
+			// If frame animation is taking too long, update the game state
+			// without rendering it, to get the updates/sec nearer to the
+			// required FPS.
+			int skips = 0;
+			while((excess > period) && (skips < MAX_FRAME_SKIPS))
+			{
+				excess -= period;
+				gameUpdate();
+				skips++;
+			}
+		}
+		
+		// I really don't like this here, as it doesn't feel thread safe, but in
+		// the off chance the game is being run in full screen, the JFrame won't
+		// have the capability to close itself...
+		System.exit(0);
+	}
+	
+	protected void paintScreen()
+	// Use active rendering to draw to a back buffer and then place the buffer
+	// on-screen.
+	{ 
+		try
+		{
+			buffer = bs.getDrawGraphics();
+			gameRender(buffer);
+			buffer.dispose();
+			
+			if (!bufferStrategy.contentsLost())
+				bufferStrategy.show();
+			else
+				System.out.println("Contents Lost");
+
+			// Sync the display on some systems.
+			// (on Linux, this fixes event queue problems)
+			Toolkit.getDefaultToolkit().sync();
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			running = false;
+		}
+	}
+	
+	// Update the game objects.
+	protected abstract void gameUpdate() {}
+	
+	// Draw the game objects to a graphics context.
+	protected abstract void gameRender(Graphics g) {}
+//==============================================================================
+
+
+//==============================================================================
+// Window listener methods.
+//==============================================================================
+	public void windowActivated(WindowEvent e)
+	// What to do when the window is made active (was previously unfocused, but
+	// the user has clicked on it).
+	{
+		resumeGame();
+	}
+
+	public void windowDeactivated(WindowEvent e)
+	// What to do when the window is made inactive (had focus, but the user has
+	// changed tasks).
+	{
+		pauseGame();
+	}
+
+	public void windowDeiconified(WindowEvent e) 
+	// What to do if the window is restored from being minimized.
+	{
+		resumeGame();
+	}
+
+	public void windowIconified(WindowEvent e)
+	// What to do if the window has been minimized.
+	{
+		pauseGame();
+	}
+
+	public void windowClosing(WindowEvent e)
+	// What to do when the window has been asked to close.
+	{
+		stopGame();
+	}
+
+	// Here to complete the interface.
+	public void windowClosed(WindowEvent e) {}
+	public void windowOpened(WindowEvent e) {}
+//==============================================================================
+}
