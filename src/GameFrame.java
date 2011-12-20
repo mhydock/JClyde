@@ -13,6 +13,7 @@
 //==============================================================================
 
 import javax.swing.*;
+import java.awt.image.*;
 import java.awt.event.*;
 import java.awt.*;
 
@@ -32,21 +33,27 @@ public abstract class GameFrame extends JFrame implements WindowListener, Runnab
 	// Number of frames that can be skipped in any one animation loop,
 	// i.e the games state is updated but not rendered
 	
-	private long period;                		// Period between drawing, in nanosecs.
+	private long period;                			// Period between drawing, in nanosecs.
 //==============================================================================
 
 
 //==============================================================================
 // Game control variables.
 //==============================================================================
-	private Thread animator;					// The thread that performs the animation.
-	private volatile boolean running = false;	// Used to stop the animation thread.
-	private volatile boolean isPaused = false;	// Used to pause the animation thread.
+	private Thread animator;						// The thread that performs the animation.
+	protected volatile boolean running = false;		// Used to stop the animation thread.
+	protected volatile boolean isPaused = false;	// Used to pause the animation thread.
+	protected volatile boolean isSuspended = false;	// Used when the game is minimized, to
+													// stop everything, even drawing.
 	
-	// Used at game termination
-	private volatile boolean gameOver = false;
+	// Used at game termination.
+	protected volatile boolean gameOver = false;
 
-	// off-screen rendering
+	// Information about the graphic environment.
+	private GraphicsEnvironment ge;
+	private GraphicsDevice gd;
+
+	// Double buffering support.
 	private BufferStrategy bufferStrategy;
 	private Graphics buffer;
 //==============================================================================
@@ -55,9 +62,12 @@ public abstract class GameFrame extends JFrame implements WindowListener, Runnab
 //==============================================================================
 // Initialization methods.
 //==============================================================================
-	public class GameFrame(String name, int fps, boolean windowed)
+	public GameFrame(String name, int fps, boolean windowed)
 	{
 		super(name);
+
+		ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		gd = ge.getDefaultScreenDevice();
 
 		if (!windowed)
 		{
@@ -82,7 +92,6 @@ public abstract class GameFrame extends JFrame implements WindowListener, Runnab
 		else
 			period = (long)1000000000/DEFAULT_FPS;
 
-		setDoubleBuffered(false);
 		setBufferStrategy();
 
 		// Make this panel receive key events.
@@ -104,9 +113,6 @@ public abstract class GameFrame extends JFrame implements WindowListener, Runnab
 	private void initFullScreen()
 	// Set up the frame to be full screen.
 	{
-		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		gd = ge.getDefaultScreenDevice();
-		
 		setUndecorated(true);					// No menu bar, borders, etc.
 		setIgnoreRepaint(true);					// Turn off all paint events.
 		setResizable(false);					// Prevent frame resizing.
@@ -160,21 +166,30 @@ public abstract class GameFrame extends JFrame implements WindowListener, Runnab
 //==============================================================================
 // Game life cycle methods, called by the JFrame's window listener methods.
 //==============================================================================
-	public void resumeGame()
-	// called when the JFrame is activated / deiconified
+	public void suspendGame()
+	// Called when the JFrame is deactivated/iconified. Pauses the game, but now
+	// even the buffer isn't updated, as it is likely not visible.
 	{
-		if (!showHelp)    // CHANGED
-			isPaused = false;  
+		isSuspended = true;
+	}
+	
+	public void resumeGame()
+	// Called when the JFrame is activated/deiconified. Unpauses the game.
+	{
+		if (!isSuspended)
+			isPaused = false;
+		else
+			isSuspended = false;
 	} 
 
 	public void pauseGame()
-	// called when the JFrame is deactivated / iconified
+	// Called when the game needs to be paused, but the frame is still active.
 	{
 		isPaused = true;
 	} 
 
 	public void stopGame() 
-	// called when the JFrame is closing
+	// Called when the JFrame is closing, to end the game loop.
 	{
 		running = false;
 	}
@@ -252,13 +267,13 @@ public abstract class GameFrame extends JFrame implements WindowListener, Runnab
 		System.exit(0);
 	}
 	
-	protected void paintScreen()
+	public void paintScreen()
 	// Use active rendering to draw to a back buffer and then place the buffer
 	// on-screen.
 	{ 
 		try
 		{
-			buffer = bs.getDrawGraphics();
+			buffer = bufferStrategy.getDrawGraphics();
 			gameRender(buffer);
 			buffer.dispose();
 			
@@ -279,10 +294,10 @@ public abstract class GameFrame extends JFrame implements WindowListener, Runnab
 	}
 	
 	// Update the game objects.
-	protected abstract void gameUpdate() {}
+	public abstract void gameUpdate();
 	
 	// Draw the game objects to a graphics context.
-	protected abstract void gameRender(Graphics g) {}
+	public abstract void gameRender(Graphics g);
 //==============================================================================
 
 
@@ -300,7 +315,7 @@ public abstract class GameFrame extends JFrame implements WindowListener, Runnab
 	// What to do when the window is made inactive (had focus, but the user has
 	// changed tasks).
 	{
-		pauseGame();
+		suspendGame();
 	}
 
 	public void windowDeiconified(WindowEvent e) 
@@ -312,13 +327,15 @@ public abstract class GameFrame extends JFrame implements WindowListener, Runnab
 	public void windowIconified(WindowEvent e)
 	// What to do if the window has been minimized.
 	{
-		pauseGame();
+		suspendGame();
 	}
 
 	public void windowClosing(WindowEvent e)
 	// What to do when the window has been asked to close.
 	{
 		stopGame();
+		
+		System.exit(0);
 	}
 
 	// Here to complete the interface.

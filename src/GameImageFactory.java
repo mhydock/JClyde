@@ -25,10 +25,10 @@ import javax.imageio.*;
 
 public class GameImageFactory
 {
-	private static String imageDir;
-	private static BufferedReader input;
-	private static boolean inputEnd;
-	private static String curr_line;
+	private String imageDir;
+	private BufferedReader input;
+	private boolean inputEnd;
+	private String curr_line;
 	
 	private static GameImageFactory factory;
 
@@ -55,7 +55,7 @@ public class GameImageFactory
 		return factory;
 	}
 	
-	public static void setInputFile(String path)
+	public void setInputFile(String path)
 	// Sets the file to read from. If the path is wrong or there is no readable
 	// file, then the whole system will quit.
 	{
@@ -63,11 +63,10 @@ public class GameImageFactory
 		
 		try
 		{
-			InputStream in = this.getClass().getResourceAsStream(path);
-			input = new BufferedReader(new InputStreamReader(in));
+			input = new BufferedReader(new FileReader(path));
 			inputEnd = false;
 		}
-		catch (IOException e) 
+		catch (Exception e) 
 		{
 			System.out.println("Error reading file: " + path);
 			System.exit(1);
@@ -79,40 +78,60 @@ public class GameImageFactory
 //==============================================================================
 // High-level methods to parse input.
 //==============================================================================	
-	public static GameImage produceGameImage()
+	public GameImage produceGameImage()
 	// Parses input until a GameImage is generated.
 	// Skips blank lines and comment lines.
 	{
-		char ch;
-		while ((curr_line = input.nextLine()) != null)
+		try
 		{
-			// Work on a duplicate of the current line.
-			String line = new String(curr_line);
+			imageDir = "";
 			
-			if (line.indexOf("//") != -1)
-			// Remove comments from the line.
-				line = line.substring(0,line.indexOf("//"));
-				
-			if (line.indexOf('|') != -1)
-			// Remove animation info from the line.
-				line = line.substring(0,line.indexOf('|'));
-				
-			line = line.trim();				// Remove white space.
+			while (((curr_line = input.readLine()) != null) && !curr_line.contains("BEGIN_IMAGES"));
 			
-			if (line.isEmpty())				// Blank line.
-				continue;
+			while ((curr_line = input.readLine()) != null)
+			{
+				// Work on a duplicate of the current line.
+				String line = new String(curr_line);				
 			
-			if (line.equals("END_IMAGES"))	// End of images block in file.
-				break;
+				if (line.contains("dir"))
+				// A path to the image files has been defined.
+				{
+					line = line.substring(3,line.length());
+					line = line.trim();
+					imageDir = line;
+					continue;
+				}
+			
+				if (line.indexOf("//") != -1)
+				// Remove comments from the line.
+					line = line.substring(0,line.indexOf("//"));
+					
+				if (line.indexOf('|') != -1)
+				// Remove animation info from the line.
+					line = line.substring(0,line.indexOf('|'));
+					
+				line = line.trim();				// Remove white space.
 				
-        	return parseLine(line);			// Trying to load image.
+				if (line.isEmpty())				// Blank line.
+					continue;
+				
+				if (line.equals("END_IMAGES"))	// End of images block in file.
+					break;
+				
+    	    	return parseLine(line);			// Trying to load image.
+			}
 		}
-		
+		catch (Exception e)
+		{
+			System.out.println("GameImageFactory interrupted: " + e.toString());
+			System.exit(1);
+		}
+			
 		inputEnd = true;
 		return null;
 	}
 	
-	public static GameImage parseLine(String line)
+	public GameImage parseLine(String line)
 	// Parse a single line, returning a GameImage object. Separated from the
 	// produceGameImage method because it could come in handy elsewhere.
 	//
@@ -129,7 +148,7 @@ public class GameImageFactory
 	//	<loading phrase> <anim mode> <time/frame> <playback mode> 
 	//
 	{
-		ch = Character.toLowerCase(curr_line.charAt(0));
+		char ch = Character.toLowerCase(curr_line.charAt(0));
 
 		switch (ch)
 		{
@@ -149,13 +168,13 @@ public class GameImageFactory
 //==============================================================================
 // Factory status methods.
 //==============================================================================
-	public static boolean atEnd()
+	public boolean atEnd()
 	// Whether the parser has reached the end of the file or not.
 	{
 		return inputEnd;
 	}
 	
-	public static String getCurrLine()
+	public String getCurrLine()
 	// Return the last parsed line.
 	{
 		return curr_line;
@@ -166,24 +185,24 @@ public class GameImageFactory
 //==============================================================================
 // String manipulation methods.
 //==============================================================================	
-	public static String getPrefix(String path)
+	public String getPrefix(String path)
 	// Extract the path before the file extension.
 	{
 		int posn;
-		if ((posn = fnm.lastIndexOf(".")) == -1)
+		if ((posn = path.lastIndexOf(".")) == -1)
 		{
-			System.out.println("No prefix found for filename: " + fnm);
+			System.out.println("No prefix found for filename: " + path);
 			return path;
 		}
 		else
 			return path.substring(0, posn);
 	}
 	
-	public static String getExtension(String path)
+	public String getExtension(String path)
 	// Extract the file extension, including the '.'.
 	{
 		int posn;
-		if ((posn = fnm.lastIndexOf(".")) == -1)
+		if ((posn = path.lastIndexOf(".")) == -1)
 		{
 			System.out.println("No extension found for filename: " + path);
 			return "";
@@ -197,7 +216,7 @@ public class GameImageFactory
 //==============================================================================
 // Animation methods.
 //==============================================================================
-	public static boolean canBeAnimated()
+	public boolean canBeAnimated()
 	// Whether the image can be animated or not. If the image is a basic
 	// GameImage or there isn't a pipe in the line, then it cannot be animated.
 	{
@@ -207,7 +226,7 @@ public class GameImageFactory
 		return false;
 	}
 	
-	public static GameAnimation produceAnimation()
+	public GameAnimation produceAnimation()
 	// Try to build a GameAnimation using the current line.
 	{
 		// Work on a duplicate of the current line.
@@ -252,7 +271,7 @@ public class GameImageFactory
 		int frameDuration = -1;
 		try
 		{
-			framesDuration = Integer.parseInt(tokens.nextToken());
+			frameDuration = Integer.parseInt(tokens.nextToken());
 		}
 		catch(Exception e)
 		// Next token wasn't an integer.
@@ -285,7 +304,7 @@ public class GameImageFactory
 //------------------------------------------------------------------------------
 // Basic GameImage methods.
 //------------------------------------------------------------------------------
-	private static GameImage getGameImage(String line)
+	private GameImage getGameImage(String line)
 	// Create and return a basic GameImage.
 	{
 		StringTokenizer tokens = new StringTokenizer(line);
@@ -302,11 +321,11 @@ public class GameImageFactory
 			String path = tokens.nextToken();	// Record the file path.
 			
 			System.out.println("Generating GameImage using file " + path);
-			return new GameImage(path);
+			return new GameImage(imageDir+path);
 		}
 	}
 	
-	private static GameImage getGameImageStrip(String line)
+	private GameImage getGameImageStrip(String line)
 	// Create and return a GameImageStrip.
 	{
 		StringTokenizer tokens = new StringTokenizer(line);
@@ -339,11 +358,11 @@ public class GameImageFactory
 			
 			System.out.println(	"Generating GameImageStrip using file " + path +
 								" with " + frames + " frames...");
-			return new GameImageStrip(path,frames);
+			return new GameImageStrip(imageDir+path,frames);
 		}
 	}
 	
-	private static GameImage getGameImageGrid(String line)
+	private GameImage getGameImageGrid(String line)
 	// Create and return a GameImageStrip.
 	{
 		StringTokenizer tokens = new StringTokenizer(line);
@@ -378,7 +397,7 @@ public class GameImageFactory
 			
 			System.out.println(	"Generating GameImageGrid using file " + path +
 								" with " + frames + " frames and " + rows + " rows.");
-			return new GameImageStrip(path,frames,rows);
+			return new GameImageGrid(imageDir+path,frames,rows);
 		}
 	}
 //------------------------------------------------------------------------------

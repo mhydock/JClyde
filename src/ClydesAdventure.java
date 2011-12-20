@@ -30,7 +30,7 @@ import java.awt.event.*;
 import java.awt.*;
 import java.util.*;
 
-public class ClydesAdventure extends GameFrame
+public class ClydesAdventure extends GameFrame implements KeyListener
 {
 //==============================================================================
 // Constants and external variables.
@@ -120,7 +120,7 @@ public class ClydesAdventure extends GameFrame
 //==============================================================================
 // Panel control methods.
 //==============================================================================
-	private void gameUpdate()
+	public void gameUpdate()
 	// Update game objects and adjust the viewport. 
 	{ 
 		if (!isPaused && !gameOver)
@@ -133,9 +133,9 @@ public class ClydesAdventure extends GameFrame
 			generateOffsets();
 			
 			// Check to see if an end-game scenario has been reached.
-			int xPos = clyde.getXPos()/tilemap.getTileSize();
-			int yPos = clyde.getYPos()/tilemap.getTileSize();
-			int distanceToExit = Math.sqrt(Math.pow(xPos-tilemap.getExitX(),2)+Math.pow(yPos-tilemap.getExitY(),2));
+			double xPos = clyde.getXPos()/tilemap.getTileSize();
+			double yPos = clyde.getYPos()/tilemap.getTileSize();
+			double distanceToExit = Math.sqrt(Math.pow(xPos-tilemap.getExitX(),2)+Math.pow(yPos-tilemap.getExitY(),2));
 			if (clyde.getHealth() == 0 || distanceToExit < 5)
 				gameOver = true;
 		}
@@ -145,8 +145,8 @@ public class ClydesAdventure extends GameFrame
 	// Create and apply offsets, making the panel act as a sort of camera.
 	{
 		// Find the middle of the screen.
-		int xOffset = getWidth()/2-clyde.getXPos();
-		int yOffset = getHeight()/2-clyde.getYPos();
+		int xOffset = (int)(getWidth()/2-clyde.getXPos());
+		int yOffset = (int)(getHeight()/2-clyde.getYPos());
 		
 		// Try to shift the character and the environment to the middle. If the
 		// offsets move the tilemap away from the edges, force the offsets to
@@ -173,7 +173,7 @@ public class ClydesAdventure extends GameFrame
 //==============================================================================
 // Drawing methods.
 //==============================================================================	
-	private void gameRender(Graphics g)
+	public void gameRender(Graphics g)
 	// Render the game graphics.
 	{
 		// Draw a white background
@@ -212,7 +212,7 @@ public class ClydesAdventure extends GameFrame
 		g.setColor(Color.green);
 		g.drawString("Gems: " + clyde.getGems() + "/" + tilemap.getNumGems(), 15, getHeight()-25);
 		g.setColor(Color.gray);
-		g.drawString("Health: " + clyde.getHeath(), 215, getHeight()-25);
+		g.drawString("Health: " + clyde.getHealth(), 215, getHeight()-25);
 	}
 
 	private void gameOverScreen(Graphics g)
@@ -297,6 +297,8 @@ public class ClydesAdventure extends GameFrame
 	public void keyReleased(KeyEvent e)
 	// What to do when the player stops holding down action buttons.
 	{
+		int keyCode = e.getKeyCode();
+		
 		if (!isPaused && !gameOver)
 		{
 			// move the sprite and ribbons based on the arrow key pressed

@@ -14,10 +14,10 @@ import java.awt.image.*;
 
 public class GameImageStrip extends GameImage implements AnimationInterface
 {
-	protected int num_frames;		// Number of frames in this strip.
+	protected int numFrames;		// Number of frames in this strip.
 	protected int curr_frame;		// Current frame of the strip.
-	protected int frame_width;		// Width of a frame (image width/#frames)
-	protected int frame_height;		// Height of a frame (image height).
+	protected int frameWidth;		// Width of a frame (image width/#frames)
+	protected int frameHeight;		// Height of a frame (image height).
 
 //==============================================================================
 // Constructors.
@@ -28,10 +28,10 @@ public class GameImageStrip extends GameImage implements AnimationInterface
 	{
 		super();
 		
-		num_frames		= -1;
+		numFrames		= -1;
 		curr_frame		= -1;
-		frame_width		= -1;
-		frame_height	= -1;
+		frameWidth		= -1;
+		frameHeight	= -1;
 	}
 	
 	public GameImageStrip(String path, int frames)
@@ -39,10 +39,10 @@ public class GameImageStrip extends GameImage implements AnimationInterface
 	{
 		super(path);
 				
-		num_frames		= (frames > 1)?frames:1;
+		numFrames		= (frames > 1)?frames:1;
 		curr_frame		= 0;
-		frame_width		= width/num_frames;
-		frame_height	= height;
+		frameWidth		= width/numFrames;
+		frameHeight	= height;
 	}
 	
 	public GameImageStrip(BufferedImage i, int frames)
@@ -50,10 +50,10 @@ public class GameImageStrip extends GameImage implements AnimationInterface
 	{
 		super(i);
 		
-		num_frames		= (frames > 1)?frames:1;
+		numFrames		= (frames > 1)?frames:1;
 		curr_frame		= 0;
-		frame_width		= width/num_frames;
-		frame_height	= height;
+		frameWidth		= width/numFrames;
+		frameHeight	= height;
 	}
 	
 	public GameImageStrip(GameImage i, int frames)
@@ -62,10 +62,10 @@ public class GameImageStrip extends GameImage implements AnimationInterface
 	{
 		super(i.getImage());
 		
-		num_frames		= (frames > 1)?frames:1;
+		numFrames		= (frames > 1)?frames:1;
 		curr_frame		= 0;
-		frame_width		= width/num_frames;
-		frame_height	= height;
+		frameWidth		= width/numFrames;
+		frameHeight	= height;
 	}
 //==============================================================================
 
@@ -77,12 +77,12 @@ public class GameImageStrip extends GameImage implements AnimationInterface
 	// Set the current frame. Will clamp the current frame if the provided value
 	// is outside the strip's range.
 	{
-		if (image != null && num_frames != 0)
+		if (image != null && numFrames != 0)
 		{
 			if (c < 0)
 				curr_frame = 0;
-			else if (c > num_frames-1)
-				curr_frame = num_frames-1;
+			else if (c > numFrames-1)
+				curr_frame = numFrames-1;
 			else
 				curr_frame = c;
 		}
@@ -100,7 +100,7 @@ public class GameImageStrip extends GameImage implements AnimationInterface
 	{
 		if (image != null)
 		{
-			num_frames = (f > 1)?f:1;
+			numFrames = (f > 1)?f:1;
 			refreshData();
 		}
 	}
@@ -108,13 +108,13 @@ public class GameImageStrip extends GameImage implements AnimationInterface
 	public int getNumberFrames()
 	// Returns the total number of frames.
 	{
-		return num_frames;
+		return numFrames;
 	}
 	
 	public int getFrameWidth()
 	// Returns the width of a single frame.
 	{
-		return frame_width;
+		return frameWidth;
 	}
 	
 	public int getFrameHeight()
@@ -122,13 +122,13 @@ public class GameImageStrip extends GameImage implements AnimationInterface
 	// height of the base image, but it's part of the AnimatedInterface, for
 	// upwards compatibility.
 	{
-		return frame_height;
+		return frameHeight;
 	}
 	
 	public BufferedImage getFrameSubImage()
 	// Return a BufferedImage that represents the current frame.
 	{
-		return image.getSubimage(curr_frame*frame_width,0,frame_width,frame_height);
+		return image.getSubimage(curr_frame*frameWidth,0,frameWidth,frameHeight);
 	}
 //==============================================================================
 
@@ -163,15 +163,15 @@ public class GameImageStrip extends GameImage implements AnimationInterface
 	{
 		if (image != null)
 		{
-			frame_width		= width/num_frames;
-			frame_height	= height;
+			frameWidth	= width/numFrames;
+			frameHeight	= height;
 		}
 		else
 		{
-			num_frames		= -1;
-			curr_frame		= -1;
-			frame_width		= -1;
-			frame_height	= -1;
+			numFrames	= -1;
+			curr_frame	= -1;
+			frameWidth	= -1;
+			frameHeight	= -1;
 		}
 	}
 //==============================================================================
@@ -181,7 +181,7 @@ public class GameImageStrip extends GameImage implements AnimationInterface
 	// Draw the current frame at location (x,y).
 	{
 		if (image != null)
-			g.drawImage	(image,x,y,x+frame_width,y+height,
-						curr_frame*frame_width,0,(curr_frame+1)*frame_width,height,null);
+			g.drawImage	(image,x,y,x+frameWidth,y+height,
+						curr_frame*frameWidth,0,(curr_frame+1)*frameWidth,height,null);
 	}
 }

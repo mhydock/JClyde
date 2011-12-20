@@ -124,6 +124,7 @@ public class GameAnimation implements AnimationInterface, Cloneable
 	// The interface requires this. Just a wrapper to restartAt().
 	{
 		restartAt(c);
+		playbackStopped = true;
 	}
 
 	public int getCurrentFrame()
@@ -350,7 +351,7 @@ public class GameAnimation implements AnimationInterface, Cloneable
 		{
 			if ((start < 0) || (start > anim_image.getNumberFrames()-1))
 			{
-				System.out.println("Out of range restart, starting at 0");
+				System.out.println("Out of range, starting at 0");
 				start = 0;
 			}
 
@@ -376,7 +377,7 @@ public class GameAnimation implements AnimationInterface, Cloneable
 	// animation as expected, but start it at random times. These are performed
 	// in private methods, seen below.
 	//
-	// Also, the num_frames provided by the AnimatedInterface is largely 
+	// Also, the numFrames provided by the AnimatedInterface is largely 
 	// ignored; instead, the getNumberFrames() method of its enclosed image is
 	// used, in case the image is a complex sequence with animations of varying 
 	// lengths.

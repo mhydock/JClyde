@@ -11,11 +11,11 @@
 //						slower, nearer == move faster).
 //==============================================================================
 
-import javax.swing.*;
+import java.awt.*;
 
 public abstract class GameLayer
 {
-	protected JPanel parent;			// JPanel that displays this layer.
+	protected Component parent;			// Component that displays this layer.
 
 	protected int xOffset;				// Camera offset; where to draw the layer.
 	protected int yOffset;				// Camera offset; where to draw the layer.
@@ -25,7 +25,7 @@ public abstract class GameLayer
 	protected double move_factor;		// How fast or slow the layer scrolls.
 										// A function of the layer depth.
 										
-	public GameLayer(int d, JPanel p)
+	public GameLayer(int d, Component p)
 	// Create a generic game layer, with the depth of the layer, and the panel
 	// responsible for displaying it.
 	{
@@ -54,13 +54,13 @@ public abstract class GameLayer
 		return move_factor;
 	}
 	
-	public JPanel getParent()
+	public Component getParent()
 	// Get the object responsible for displaying the layer.
 	{
 		return parent;
 	}
 	
-	public void setParent(JPanel p)
+	public void setParent(Component p)
 	// Set the object responsible for displaying the layer.
 	{
 		parent = p;

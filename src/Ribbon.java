@@ -25,7 +25,7 @@ public class Ribbon extends GameLayer
 	private int xPos;
 	private int yPos;
 	
-	public Ribbon(GameImage i, int d, boolean h, boolean v, JPanel p)
+	public Ribbon(GameImage i, int d, boolean h, boolean v, Component p)
 	// Create a "ribbon" (scrollable background layer) at depth d. May be
 	// repeatable in the horizontal or vertical directions.
 	{

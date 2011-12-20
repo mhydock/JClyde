@@ -1,6 +1,6 @@
 //==============================================================================
 // Date Created:		18 December 2011
-// Last Updated:		18 December 2011
+// Last Updated:		20 December 2011
 //
 // File Name:			ItemTile.java
 // File Author:			M Matthew Hydock
@@ -15,7 +15,7 @@ public abstract class ItemTile extends AnimatedTile
 	public ItemTile(GameImageStrip i, GameAnimation a)
 	// Create an ItemTile, which is just a special AnimatedTile.
 	{
-		super(i,a);
+		super(i,a,false);
 	}
 	
 	public void passiveAction(Sprite s)

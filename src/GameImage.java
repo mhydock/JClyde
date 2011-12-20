@@ -113,6 +113,9 @@ public class GameImage
 			BufferedImage im = ImageIO.read(getClass().getResource(path));
 			int transparency = im.getColorModel().getTransparency();
 			
+			if (im != null)
+				System.out.println(path + " successfully loaded.");
+			
 			// Create a new BufferedImage that is compatible with the display.
 			image	= gc.createCompatibleImage(im.getWidth(),im.getHeight(),transparency);
 			

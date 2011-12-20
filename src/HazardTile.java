@@ -1,6 +1,6 @@
 //==============================================================================
 // Date Created:		18 December 2011
-// Last Updated:		18 December 2011
+// Last Updated:		20 December 2011
 //
 // File Name:			HazardTile.java
 // File Author:			M Matthew Hydock
@@ -17,12 +17,9 @@ public abstract class HazardTile extends AnimatedTile
 	public HazardTile(GameImageStrip i, GameAnimation a, int d)
 	// Create an animated tile that can inflict damage.
 	{
-		super(i,a);
+		super(i,a,false);
 		
 		damage = d;
-		
-		// Need to be able to stand within the tile to cause damage.
-		isCollidable = false;
 	}
 	
 	public void setDamage(int d)

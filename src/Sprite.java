@@ -1,6 +1,6 @@
 //==============================================================================
 // Date Created:		10 December 2011
-// Last Updated:		19 December 2011
+// Last Updated:		20 December 2011
 //
 // File Name:			Sprite.java
 // File Author:			M Matthew Hydock
@@ -39,10 +39,10 @@ public class Sprite extends GameLayer
 	protected boolean isLooping = true;
 
 	// Position and movement variables.
-	protected int xPos, yPos;			// Global location of sprite.
-	protected int dx, dy;				// Amount to move for each update.
+	protected double xPos, yPos;			// Global location of sprite.
+	protected double dx, dy;				// Amount to move for each update.
 
-	public Sprite(GameImageStrip i, int x, int y, JPanel p)
+	public Sprite(GameImageStrip i, int x, int y, Component p)
 	// Create a bare-bones sprite with a position, a sprite map, and a parent
 	// panel that draws it.
 	{
@@ -127,12 +127,6 @@ public class Sprite extends GameLayer
 		return image.getFrameHeight();
 	}
 
-	public JPanel getParent()
-	// Return the parent JPanel.
-	{
-		return parent;
-	}
-
 	public int getParentWidth()
 	// Return the width of the parent panel.
 	{
@@ -144,7 +138,6 @@ public class Sprite extends GameLayer
 	{
 		return parent.getHeight();
 	}
-
 
 	public boolean isActive()
 	// Returns whether the sprite is active or not.
@@ -158,39 +151,39 @@ public class Sprite extends GameLayer
 		isActive = a;
 	}
 
-	public void setPosition(int x, int y)
+	public void setPosition(double x, double y)
 	// Manually set the x and y locations.
 	{
 		xPos = x;
 		yPos = y;
 	}
 
-	public int getXPos()
+	public double getXPos()
 	// Return the x position.
 	{
 		return xPos;
 	}
 
-	public int getYPos()
+	public double getYPos()
 	// Return the y position.
 	{
 		return yPos;
 	}
 
-	public void setStep(int dx, int dy)
+	public void setStep(double dx, double dy)
 	// Set the step size.
 	{
 		this.dx = dx;
 		this.dy = dy;
 	}
 
-	public int getXStep()
+	public double getXStep()
 	// Return the step size in the x direction.
 	{
 		return dx;
 	}
 
- 	public int getYStep()
+ 	public double getYStep()
  	// Return the step size in the y direction.
 	{
 		return dy;
@@ -218,7 +211,7 @@ public class Sprite extends GameLayer
 	public Rectangle getMyRectangle()
 	// Return a rectangle bounding box for the sprite.
 	{
-		return new Rectangle(xPos, yPos, getWidth(), getHeight());
+		return new Rectangle((int)xPos,(int)yPos,getWidth(),getHeight());
 	}
 //==============================================================================
 
@@ -226,7 +219,7 @@ public class Sprite extends GameLayer
 //==============================================================================
 // Methods to move or update the sprite.
 //==============================================================================
-	public void translate(int xDist, int yDist)
+	public void translate(double xDist, double yDist)
 	// Shift the sprite's location by a certain amount.
 	{
 		xPos += xDist;
@@ -265,10 +258,10 @@ public class Sprite extends GameLayer
 			// The sprite has no image, so draw a yellow circle instead.
 			{
 				g.setColor(Color.yellow);
-				g.fillOval(xPos+xOffset, yPos+yOffset, SIZE, SIZE);
+				g.fillOval((int)xPos+xOffset, (int)yPos+yOffset, SIZE, SIZE);
 			}
 			else
-				image.draw(g,xPos+xOffset,yPos+yOffset);
+				image.draw(g,(int)xPos+xOffset,(int)yPos+yOffset);
 		}
 	}
 }

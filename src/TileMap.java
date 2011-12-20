@@ -1,6 +1,6 @@
 //==============================================================================
 // Date Created:		11 December 2011
-// Last Updated:		18 December 2011
+// Last Updated:		20 December 2011
 //
 // File Name:			TileMap.java
 // File Author:			M Matthew Hydock
@@ -37,7 +37,7 @@ public class TileMap extends GameLayer
 	private int numGems;				// Number of gems at initialization of
 										// the level.
 	
-	public TileMap(Tile[][] map, ArrayList<Tile> list, int d, int s, JPanel p)
+	public TileMap(Tile[][] map, ArrayList<Tile> list, int d, int s, Component p)
 	// Create a new TileMap, using a preloaded list of tiles and a 2D array of
 	// tiles representing the tilemap itself. Also asks for the depth of the
 	// layer and the size of a tile, which will be the on-screen space reserved
@@ -152,7 +152,7 @@ public class TileMap extends GameLayer
 	// Make sure there aren't any gaps for the hero sprite to fall through.
 	{
 		for (int i = 0; i < tilemap[0].length; i++)
-			if (tilemap[tilemap.length-1][i] == null || !tilemap[tilemap.length-1][i].isObstacle())
+			if (tilemap[tilemap.length-1][i] == null || !tilemap[tilemap.length-1][i].isCollidable())
 				throw new Exception("WARNING: There is at least one gap in the floor. Please correct this.");
 	}
 

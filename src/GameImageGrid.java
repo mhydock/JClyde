@@ -16,7 +16,7 @@ import java.awt.image.*;
 
 public class GameImageGrid extends GameImageStrip
 {
-	private int num_rows;	
+	private int numRows;	
 	private int curr_row;
 	
 //==============================================================================
@@ -28,10 +28,10 @@ public class GameImageGrid extends GameImageStrip
 	{
 		super();
 		
-		num_rows = -1;
+		numRows = -1;
 		curr_row = -1;
 		
-		frame_height = -1;
+		frameHeight = -1;
 	}
 	
 	public GameImageGrid(String path, int rows, int columns)
@@ -40,10 +40,10 @@ public class GameImageGrid extends GameImageStrip
 	{
 		super(path,columns);
 		
-		num_rows = (rows > 1)?rows:1;
+		numRows = (rows > 1)?rows:1;
 		curr_row = 0;
 		
-		frame_height = height/num_rows;
+		frameHeight = height/numRows;
 	}
 	
 	public GameImageGrid(BufferedImage i, int rows, int columns)
@@ -51,10 +51,10 @@ public class GameImageGrid extends GameImageStrip
 	{
 		super(i,columns);
 		
-		num_rows = (rows > 1)?rows:1;
+		numRows = (rows > 1)?rows:1;
 		curr_row = 0;
 		
-		frame_height = height/num_rows;
+		frameHeight = height/numRows;
 	}
 	
 	public GameImageGrid(GameImage i, int rows, int columns)
@@ -62,10 +62,10 @@ public class GameImageGrid extends GameImageStrip
 	{
 		super(i,columns);
 		
-		num_rows = (rows > 1)?rows:1;
+		numRows = (rows > 1)?rows:1;
 		curr_row = 0;
 		
-		frame_height = height/num_rows;
+		frameHeight = height/numRows;
 	}
 	
 	public GameImageGrid(GameImageStrip s, int rows)
@@ -74,10 +74,10 @@ public class GameImageGrid extends GameImageStrip
 	{
 		super(s.getImage(),s.getNumberFrames());
 		
-		num_rows = (rows > 1)?rows:1;
+		numRows = (rows > 1)?rows:1;
 		curr_row = 0;
 		
-		frame_height = height/num_rows;
+		frameHeight = height/numRows;
 	}
 //==============================================================================
 
@@ -91,14 +91,14 @@ public class GameImageGrid extends GameImageStrip
 	// Sets the current row. Will clamp the current row if the provided value is
 	// outside the grid's range.
 	{
-		if (image != null && num_rows != 0)
+		if (image != null && numRows != 0)
 		{
-			if (c < 0)
+			if (r < 0)
 				curr_row = 0;
-			else if (c > num_rows-1)
-				curr_row = num_rows-1;
+			else if (r > numRows-1)
+				curr_row = numRows-1;
 			else
-				curr_row = c;
+				curr_row = r;
 		}
 	}
 	
@@ -112,7 +112,7 @@ public class GameImageGrid extends GameImageStrip
 	{
 		if (image != null)
 		{
-			rows = (r > 1)?r:1;	
+			numRows = (r > 1)?r:1;	
 			refreshData();
 		}
 	}
@@ -120,13 +120,13 @@ public class GameImageGrid extends GameImageStrip
 	public int getNumberRows()
 	// Return the total number of rows.
 	{
-		return num_rows;
+		return numRows;
 	}
 	
 	public BufferedImage getFrameSubImage()
 	// Return a BufferedImage that represents the current frame.
 	{
-		return image.getSubimage(curr_frame*frame_width,curr_row*frame_height,frame_width,frame_height);
+		return image.getSubimage(curr_frame*frameWidth,curr_row*frameHeight,frameWidth,frameHeight);
 	}
 //==============================================================================
 
@@ -137,15 +137,15 @@ public class GameImageGrid extends GameImageStrip
 	{
 		if (image != null)
 		{
-			frame_width		= width/num_frames;
-			frame_height	= height/num_rows;
+			frameWidth		= width/numFrames;
+			frameHeight	= height/numRows;
 		}
 		else
 		{
-			num_frames		= -1;
+			numFrames		= -1;
 			curr_frame		= -1;
-			frame_width		= -1;
-			frame_height	= -1;
+			frameWidth		= -1;
+			frameHeight	= -1;
 		}
 	}
 	
@@ -153,8 +153,8 @@ public class GameImageGrid extends GameImageStrip
 	// Draw the current frame at location (x,y).
 	{
 		if (image != null)
-			g.drawImage	(image,x,y,x+frame_width,y+frame_height,
-						curr_frame*frame_width,curr_row*frame_height,
-						(curr_frame+1)*frame_width,(curr_row+1)*frame_height,null);
+			g.drawImage	(image,x,y,x+frameWidth,y+frameHeight,
+						curr_frame*frameWidth,curr_row*frameHeight,
+						(curr_frame+1)*frameWidth,(curr_row+1)*frameHeight,null);
 	}
 }

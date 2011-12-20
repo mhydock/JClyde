@@ -1,6 +1,6 @@
 //==============================================================================
 // Date Created:		25 November 2011
-// Last Updated:		19 December 2011
+// Last Updated:		20 December 2011
 //
 // File Name:			GameImageGroup.java
 // File Author:			M Matthew Hydock
@@ -142,20 +142,20 @@ public class GameImageGroup extends GameImageStrip
 		strips.add(i);
 	}
 	
-	public boolean removeFrame(int i)
+	public boolean removeStrip(int i)
 	// Remove a frame from the sequence. Adjust the current frame as necessary.
 	// Returns a boolean, to check if a frame was successfully removed or not.
 	{
 		// Index out of bounds, no frame removed.
-		if (i < 0 || i > frames.size()-1)
+		if (i < 0 || i > strips.size()-1)
 			return false;
 		
 		// Index within bounds, frame removed.	
-		frames.remove(i);
+		strips.remove(i);
 		
 		// Make sure the current frame is still within bounds.
 		if (curr_frame == i)
-			if (curr_frame == frames.size())
+			if (curr_frame == strips.size())
 				curr_frame--;
 			
 		return true;
@@ -184,8 +184,8 @@ public class GameImageGroup extends GameImageStrip
 			GameImageStrip curr = strips.get(curr_strip);
 			if (c < 0)
 				curr.setCurrentFrame(0);
-			else if (c > curr.getNumFrames()-1)
-				curr.setCurrentFrame(curr.getNumFrames()-1);
+			else if (c > curr.getNumberFrames()-1)
+				curr.setCurrentFrame(curr.getNumberFrames()-1);
 			else
 				curr.setCurrentFrame(c);
 		}
@@ -204,7 +204,7 @@ public class GameImageGroup extends GameImageStrip
 	// Gets the number of frames of the current image strip.
 	{
 		if (strips != null && curr_strip < strips.size())
-			return strips.get(curr_strip).getNumFrames();
+			return strips.get(curr_strip).getNumberFrames();
 			
 		return 0;
 	}

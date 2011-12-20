@@ -1,6 +1,6 @@
 //==============================================================================
 // Date Created:		14 December 2011
-// Last Updated:		18 December 2011
+// Last Updated:		20 December 2011
 //
 // File Name:			ClydeSprite.java
 // File Author:			M Matthew Hydock
@@ -23,7 +23,7 @@ public class ClydeSprite extends Sprite
 	// be scaled, so as to fit reasonably within the game's resolution.
 	private static final double PIXELS_PER_METER = 64;
 	private static final double GRAVITY = -9.8;
-	private static final double HORZ_VELOCITY = 100;
+	private static final double HORZ_VELOCITY = 10;
 	private static final double VERT_VELOCITY = 200;
 	private static final double TERMINAL_VELOCITY = -1500;
 	
@@ -46,20 +46,20 @@ public class ClydeSprite extends Sprite
 	private double timeAirborn;
 
 	// The TileMap that Clyde is interacting with.
-	private TileMap tilemap;
+	private TileMap tileMap;
 	
 	// Variables pertaining to Clyde's progress through the level.
 	private int gemsCollected;
 	private int currHealth;
 	private boolean hasTreasure;
 
-	public ClydeSprite(GameImageGrid i, TileMap t, int x, int y, JPanel p)
-	// Make a ClydeSprite, a sprite with an associated tilemap, different
+	public ClydeSprite(GameImageGrid i, TileMap t, int x, int y, Component p)
+	// Make a ClydeSprite, a sprite with an associated tileMap, different
 	// states, and some basic physics rules.	
 	{
-		super(x,y,i,p);
+		super(i,x,y,p);
 		
-		tilemap = t;
+		tileMap = t;
 		
 		timeAirborn = 0;
 		
@@ -68,7 +68,7 @@ public class ClydeSprite extends Sprite
 		isFacingRight = true;
 		hasWandOut = false;
 		
-		animator = new GameAnimation(i,FRAME_DUR,GameAnimation.Mode.PINGPONG,false);
+		animator = new GameAnimation(i,FRAME_DUR,GameAnimation.Mode.PINGPONG,false,false);
 		resetLevel();
 	}
 
@@ -85,7 +85,7 @@ public class ClydeSprite extends Sprite
 		return gemsCollected;
 	}
 	
-	public boolean hasTreasure();
+	public boolean hasTreasure()
 	{
 		return hasTreasure;
 	}
@@ -113,7 +113,7 @@ public class ClydeSprite extends Sprite
 	{
 		startLooping();
 		
-		dx = HORZ_VELOCITY();
+		dx = HORZ_VELOCITY;
 		isFacingRight = true;
 		isSitting = false;
 		isStill = false;
@@ -123,10 +123,7 @@ public class ClydeSprite extends Sprite
 	// Stop moving left or right. If not falling, stop animation.
 	{
 		if (!isFalling)
-		{
-			stopLooping();
-			image.setCurrentFrame(1);
-		}
+			animator.setCurrentFrame(0);
 			
 		dx = 0;
 		isStill = true;
@@ -142,19 +139,19 @@ public class ClydeSprite extends Sprite
 			{
 				isRising = true;
 				startTime = System.nanoTime();
-				image.setCurrentFrame(0);
+				animator.setCurrentFrame(0);
 			}
 	
 			timeAirborn = (System.nanoTime() - startTime)/100000000L;
 			dy = GRAVITY*2*timeAirborn + VERT_VELOCITY;
 			
-			if (dy == 0)
-				image.setCurrentFrame(1);
+			if ((int)dy == 0)
+				animator.setCurrentFrame(1);
 			
 			if (dy < 0)
 			// Change in y is negative, switch to falling mode.
 			{
-				image.setCurrentFrame(2);
+				animator.setCurrentFrame(2);
 				startFalling();
 			}
 		}
@@ -179,7 +176,7 @@ public class ClydeSprite extends Sprite
 	{
 		if (isFalling)
 		{
-			if (dy == 0)
+			if (dy <= 0)
 			{
 				stopLooping();
 				startTime = System.nanoTime();
@@ -229,17 +226,17 @@ public class ClydeSprite extends Sprite
 	public void doAction()
 	// Perform a simple action on a nearby object (flip switch/read note/etc).
 	{
-		int x = xPos/tilemap.getTileSize();
-		int y = yPos/tilemap.getTileSize();
+		int x = (int)(xPos/tileMap.getTileSize());
+		int y = (int)(yPos/tileMap.getTileSize());
 		
-		Tile t = tilemap.getTileAt(x*tilemap.getTileSize(),y*tilemap.getTileSize());
+		Tile t = tileMap.getTileAt(x*tileMap.getTileSize(),y*tileMap.getTileSize());
 		
 		if (t != null)
 			t.doAction();
 		
 		y++;
 		
-		t = tilemap.getTileAt(x*tilemap.getTileSize(),y*tilemap.getTileSize());
+		t = tileMap.getTileAt(x*tileMap.getTileSize(),y*tileMap.getTileSize());
 		
 		if (t != null)
 			t.doAction();
@@ -250,8 +247,8 @@ public class ClydeSprite extends Sprite
 	{
 		hasWandOut = true;
 		
-		int x = xPos/tilemap.getTileSize();
-		int y = yPos/tilemap.getTileSize();
+		int x = (int)(xPos/tileMap.getTileSize());
+		int y = (int)(yPos/tileMap.getTileSize());
 		
 		if (isFacingRight)
 		{
@@ -259,14 +256,14 @@ public class ClydeSprite extends Sprite
 			x++;
 			y++;
 			
-			Tile t = tilemap.getTileAt(x*tilemap.getTileSize(),y*tilemap.getTileSize());
+			Tile t = tileMap.getTileAt(x*tileMap.getTileSize(),y*tileMap.getTileSize());
 			
 			if (t != null)
 				t.doMagic();
 			
 			// To get the tile in front of Clyde, underneath his feet.
 			y++;
-			t = tilemap.getTileAt(x*tilemap.getTileSize(),y*tilemap.getTileSize());
+			t = tileMap.getTileAt(x*tileMap.getTileSize(),y*tileMap.getTileSize());
 			
 			if (t != null)
 				t.doMagic();
@@ -277,14 +274,14 @@ public class ClydeSprite extends Sprite
 			x--;
 			y++;
 			
-			Tile t = tilemap.getTileAt(x*tilemap.getTileSize(),y*tilemap.getTileSize());
+			Tile t = tileMap.getTileAt(x*tileMap.getTileSize(),y*tileMap.getTileSize());
 			
 			if (t != null)
 				t.doMagic();
 			
 			// To get the tile in front of Clyde, underneath his feet.
 			y++;
-			t = tilemap.getTileAt(x*tilemap.getTileSize(),y*tilemap.getTileSize());
+			t = tileMap.getTileAt(x*tileMap.getTileSize(),y*tileMap.getTileSize());
 			
 			if (t != null)
 				t.doMagic();
@@ -302,10 +299,10 @@ public class ClydeSprite extends Sprite
 //==============================================================================
 // Collision detection and position updating.
 //==============================================================================
-	private boolean willHitTile(int x, int y)
+	private boolean willHitTile(double x, double y)
 	// Check whether a given point is inside an obstruction.
 	{
-		return tilemap.insideSolidTile(x,y);  
+		return tileMap.insideSolidTile((int)x,(int)y);  
 	}
 	
 	private boolean collisionCheck()
@@ -338,7 +335,7 @@ public class ClydeSprite extends Sprite
 			}
 			
 			dy = 0;
-			yPos = (yPos/tilemap.getTileSize() - 1)*tileMap.getTileSize();
+			yPos = (yPos/tileMap.getTileSize() - 1)*tileMap.getTileSize();
 			
 			return true;
 		}
@@ -347,12 +344,12 @@ public class ClydeSprite extends Sprite
 		// Clyde a little to the side opposite the collision.
 		if (willHitTile(xPos,yPos+getHeight()) && !willHitTile(xPos+getWidth(),yPos+getHeight()))
 		{
-			xPos = (xPos/tilemap.getTileSize() + 1)*tileMap.getTileSize();
+			xPos = (xPos/tileMap.getTileSize() + 1)*tileMap.getTileSize();
 			return true;
 		}
 		else if (!willHitTile(xPos,yPos+getHeight()) && willHitTile(xPos+getWidth(),yPos+getHeight()))
 		{
-			xPos = (xPos/tilemap.getTileSize())*tileMap.getTileSize();
+			xPos = (xPos/tileMap.getTileSize())*tileMap.getTileSize();
 			return true;
 		}
 		
@@ -364,7 +361,7 @@ public class ClydeSprite extends Sprite
 			dy = 0;
 			isFalling = true;
 			
-			yPos = (yPos/tilemap.getTileSize() + 1)*tileMap.getTileSize();
+			yPos = (yPos/tileMap.getTileSize() + 1)*tileMap.getTileSize();
 			return true;
 		}
 		
@@ -373,14 +370,14 @@ public class ClydeSprite extends Sprite
 		if (willHitTile(xPos,yPos+(getHeight()/4)) || willHitTile(xPos,yPos+(getHeight()*3/4)))
 		{
 			dx = 0;
-			xPos = (xPos/tilemap.getTileSize() + 1)*tileMap.getTileSize();
+			xPos = (xPos/tileMap.getTileSize() + 1)*tileMap.getTileSize();
 			return true;
 		}
 		else if (willHitTile(xPos+getWidth(),yPos+(getHeight()/4)) || 
 				 willHitTile(xPos+getWidth(),yPos+(getHeight() * 3/4)))
 		{
 			dx = 0;
-			xPos = (xPos/tilemap.getTileSize())*tileMap.getTileSize();
+			xPos = (xPos/tileMap.getTileSize())*tileMap.getTileSize();
 			return true;
 		}
 		
@@ -395,15 +392,16 @@ public class ClydeSprite extends Sprite
 			// The sprite is always falling, even when it's not.
 			fall();
 			
-			int oldX = xPos;
-			int oldY = yPos;
+			double oldX = xPos;
+			double oldY = yPos;
 			
 			dx /= PIXELS_PER_METER;
 			dy /= -PIXELS_PER_METER;		// Inverting change in y, to match
 											// flipped y axis of display.
 		
 		    super.updateSprite();			// Apply dx and dy and update the 
-		
+											// animation.
+											
 			// If collisionCheck() needs to be run more than 30 times, we got a
 			// problem somewhere...
 			int i;
@@ -420,26 +418,18 @@ public class ClydeSprite extends Sprite
 		}
 		
 		// Apply passive actions to upper half. If an item, remove it from the
-		// tilemap.
-		int x = xPos+getWidth()/2;
-		int y = yPos+getHeight()/4;
-		Tile t = tilemap.getTileAt(x,y);
-		if (t != null && !t.isObstacle())
-		{
+		// tileMap.
+		int x = (int)xPos+getWidth()/2;
+		int y = (int)yPos+getHeight()/4;
+		Tile t = tileMap.getTileAt(x,y);
+		if (t != null && !t.isCollidable())
 			t.passiveAction(this);
-			if (t.isItem())
-				t.scheduleRemoval();
-		}
 			
 		// Apply passive actions to lower half. If an item, remove it from the
-		// tilemap.
-		t = tilemap.getTileAt(x,y+1);
-		if (t != null && !t.isObstacle())
-		{
+		// tileMap.
+		t = tileMap.getTileAt(x,y+1);
+		if (t != null && !t.isCollidable())
 			t.passiveAction(this);
-			if (t.isItem())
-				t.scheduleRemoval();
-		}
 	}
 //==============================================================================
 
@@ -479,19 +469,19 @@ public class ClydeSprite extends Sprite
 		// The sprite has no image, so draw a yellow circle instead.
 		{
 			g.setColor(Color.yellow);
-			g.fillOval(xPos+xOffset, yPos+yOffset, SIZE, SIZE);
+			g.fillOval((int)xPos+xOffset, (int)yPos+yOffset, SIZE, SIZE);
 		}
 		else
 		{
 			if (isFacingRight)
 			// Sprite is facing right, draw normally.
-				image.draw(g,xPos+xOffset,yPos+yOffset);
+				image.draw(g,(int)xPos+xOffset,(int)yPos+yOffset);
 			else
 			// Manually flip the sprite, since I didn't build a flip method
 			// into ALL OF MY IMAGE CLASSES.
 			{
-				int x = xPos+xOffset;
-				int y = xPos+yOffset;
+				int x = (int)xPos+xOffset;
+				int y = (int)yPos+yOffset;
 				int w = image.getFrameWidth();
 				int h = image.getFrameHeight();
 				int r = ((GameImageGrid)image).getCurrentRow();
