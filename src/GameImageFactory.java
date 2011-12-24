@@ -43,6 +43,8 @@ public class GameImageFactory
 		
 		imageDir = null;
 		curr_line = null;
+		
+		System.out.println("GameImageFactory initialized.");
 	}
 	
 	public static GameImageFactory getInstanceOf()
@@ -59,12 +61,17 @@ public class GameImageFactory
 	// Sets the file to read from. If the path is wrong or there is no readable
 	// file, then the whole system will quit.
 	{
+		imageDir = null;
+		curr_line = null;
+		
 		System.out.println("Reading file: " + path);
 		
 		try
 		{
 			input = new BufferedReader(new FileReader(path));
 			inputEnd = false;
+			
+			System.out.println("Images file " + path + " set up for reading.");
 		}
 		catch (Exception e) 
 		{
@@ -83,13 +90,13 @@ public class GameImageFactory
 	// Skips blank lines and comment lines.
 	{
 		try
-		{
-			imageDir = "";
-			
-			while (((curr_line = input.readLine()) != null) && !curr_line.contains("BEGIN_IMAGES"));
+		{			
+			if (curr_line == null)
+			// The factory hasn't started to parse this file yet, so reset the
+				while (((curr_line = input.readLine()) != null) && !curr_line.contains("BEGIN_IMAGES"));
 			
 			while ((curr_line = input.readLine()) != null)
-			{
+			{				
 				// Work on a duplicate of the current line.
 				String line = new String(curr_line);				
 			
@@ -97,8 +104,15 @@ public class GameImageFactory
 				// A path to the image files has been defined.
 				{
 					line = line.substring(3,line.length());
+					
+					if (line.indexOf("//") != -1)
+					// Remove comments from the line.
+						line = line.substring(0,line.indexOf("//"));
+					
 					line = line.trim();
 					imageDir = line;
+					
+					System.out.println("Image directory set: " + imageDir);
 					continue;
 				}
 			
@@ -118,12 +132,15 @@ public class GameImageFactory
 				if (line.equals("END_IMAGES"))	// End of images block in file.
 					break;
 				
+				System.out.println(line);
+				
     	    	return parseLine(line);			// Trying to load image.
 			}
 		}
 		catch (Exception e)
 		{
 			System.out.println("GameImageFactory interrupted: " + e.toString());
+			e.printStackTrace();
 			System.exit(1);
 		}
 			
@@ -148,16 +165,16 @@ public class GameImageFactory
 	//	<loading phrase> <anim mode> <time/frame> <playback mode> 
 	//
 	{
-		char ch = Character.toLowerCase(curr_line.charAt(0));
+		char ch = Character.toLowerCase(line.charAt(0));
 
 		switch (ch)
 		{
-			case 'o':	return getGameImage(curr_line);
-			case 's':	return getGameImageStrip(curr_line);
-			case 'd':	return getGameImageGrid(curr_line);
-//			case 'n':	return getGameImageSequence(curr_line);
-//			case 'g':	return getGameImageGroup(curr_line);
-			default	:	System.out.println("Do not recognize line: " + curr_line);
+			case 'o':	return getGameImage(line);
+			case 's':	return getGameImageStrip(line);
+			case 'd':	return getGameImageGrid(line);
+//			case 'n':	return getGameImageSequence(line);
+//			case 'g':	return getGameImageGroup(line);
+			default	:	System.out.println("Do not recognize line: " + line);
 		}
 		
 		return null;

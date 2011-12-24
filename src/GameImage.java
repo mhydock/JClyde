@@ -12,6 +12,7 @@
 import java.awt.*;
 import java.awt.image.*;
 import javax.imageio.*;
+import java.io.*;
 
 public class GameImage
 {
@@ -29,41 +30,46 @@ public class GameImage
 	public GameImage()
 	// Create a null GameImage.
 	{
-		if (gc == null)
-		{
-			ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-			gc = ge.getDefaultScreenDevice().getDefaultConfiguration();
-		}
-			
+		initGraphicsConfig();
+					
 		name	= "";
 		image	= null;
 		width	= -1;
 		height	= -1;
+		
+		System.out.println("Broken GameImage generated.");
 	}
 	
 	public GameImage(String path)
 	// Create a new BufferedImage, and record its dimensions.
 	{
-		if (gc == null)
-		{
-			ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-			gc = ge.getDefaultScreenDevice().getDefaultConfiguration();
-		}
-
+		initGraphicsConfig();
+		
 		setImage(path);
+		
+		if (isBroken())
+			System.out.println("Broken GameImage generated.");
 	}
 	
 	public GameImage(BufferedImage i)
 	// Wraps a given BufferedImage, and records its dimensions. The resulting
 	// GameImage will have no name.
 	{
+		initGraphicsConfig();
+
+		setImage(i);
+		
+		if (isBroken())
+			System.out.println("Broken GameImage generated.");
+	}
+	
+	public void initGraphicsConfig()
+	{
 		if (gc == null)
 		{
 			ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 			gc = ge.getDefaultScreenDevice().getDefaultConfiguration();
 		}
-
-		setImage(i);
 	}
 //==============================================================================
 
@@ -107,14 +113,21 @@ public class GameImage
 	{
 		image = null;
 		
+		System.out.println("Attempting to load image: " + path);
+		
 		try
 		{
 			// Attempt to load the image, and record its transparency.
-			BufferedImage im = ImageIO.read(getClass().getResource(path));
-			int transparency = im.getColorModel().getTransparency();
+			File file = new File(path);
 			
-			if (im != null)
-				System.out.println(path + " successfully loaded.");
+			if (!file.exists())
+				System.out.println("File not found.");
+			else
+				System.out.println("File found.");
+			
+			BufferedImage im = ImageIO.read(file);
+				
+			int transparency = im.getColorModel().getTransparency();
 			
 			// Create a new BufferedImage that is compatible with the display.
 			image	= gc.createCompatibleImage(im.getWidth(),im.getHeight(),transparency);
@@ -138,6 +151,8 @@ public class GameImage
 			// Save the dimensions of the loaded image.
 			width = image.getWidth();
 			height = image.getHeight();
+			
+			System.out.println("Image " + path + " loaded successfully.");
 		}
 		catch(Exception e)
 		// There was an error somewhere, nullify the GameImage's properties.
@@ -163,8 +178,8 @@ public class GameImage
 		}
 		else
 		{
-			width = 0;
-			height = 0;
+			width = -1;
+			height = -1;
 		}
 	}
 	

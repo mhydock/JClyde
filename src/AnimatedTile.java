@@ -1,6 +1,6 @@
 //==============================================================================
 // Date Created:		18 November 2011
-// Last Updated:		19 December 2011
+// Last Updated:		24 December 2011
 //
 // File Name:			AnimatedTile.java
 // File Author:			M Matthew Hydock
@@ -22,11 +22,8 @@ public class AnimatedTile extends Tile
 	{
 		super(null,c);
 		
-		image		= i;
-		animation	= a;
-		
-		if (animation != null)
-			animation.animateObject(image);
+		setImage(i);
+		setAnimation(a);
 	}
 
 	public void setImage(GameImageStrip i)
@@ -68,6 +65,9 @@ public class AnimatedTile extends Tile
 	// that the image drawn is the one contained in this class, and not in Tile.
 	{
 		if (image != null && !image.isBroken())
+		{
+			image.setCurrentFrame(animation.getCurrentFrame());
 			image.draw(g,x,y);
+		}
 	}
 }

@@ -14,7 +14,7 @@ import java.awt.image.*;
 
 public class GameImageStrip extends GameImage implements AnimationInterface
 {
-	protected int numFrames;		// Number of frames in this strip.
+	protected int numFrames = 0;	// Number of frames in this strip.
 	protected int curr_frame;		// Current frame of the strip.
 	protected int frameWidth;		// Width of a frame (image width/#frames)
 	protected int frameHeight;		// Height of a frame (image height).
@@ -31,18 +31,30 @@ public class GameImageStrip extends GameImage implements AnimationInterface
 		numFrames		= -1;
 		curr_frame		= -1;
 		frameWidth		= -1;
-		frameHeight	= -1;
+		frameHeight		= -1;
 	}
 	
 	public GameImageStrip(String path, int frames)
 	// Create an image strip, with a set number of frames.
 	{
-		super(path);
+		// Can't use 'super' or else it'll try to access the setImage used in
+		// this class...
+		initGraphicsConfig();
+		
+		setImage(path);
+		
+		if (isBroken())
+			System.out.println("Broken GameImage generated.");
 				
 		numFrames		= (frames > 1)?frames:1;
 		curr_frame		= 0;
+		
+		System.out.println(numFrames);
+		
 		frameWidth		= width/numFrames;
-		frameHeight	= height;
+		frameHeight		= height;
+		
+		System.out.println("made a gameimagestrip.");
 	}
 	
 	public GameImageStrip(BufferedImage i, int frames)
@@ -53,7 +65,7 @@ public class GameImageStrip extends GameImage implements AnimationInterface
 		numFrames		= (frames > 1)?frames:1;
 		curr_frame		= 0;
 		frameWidth		= width/numFrames;
-		frameHeight	= height;
+		frameHeight		= height;
 	}
 	
 	public GameImageStrip(GameImage i, int frames)
@@ -65,7 +77,7 @@ public class GameImageStrip extends GameImage implements AnimationInterface
 		numFrames		= (frames > 1)?frames:1;
 		curr_frame		= 0;
 		frameWidth		= width/numFrames;
-		frameHeight	= height;
+		frameHeight		= height;
 	}
 //==============================================================================
 
@@ -161,7 +173,7 @@ public class GameImageStrip extends GameImage implements AnimationInterface
 	// dimensions of a frame. If the BufferedImage has been made null, the
 	// GameImageStrip's properties will be set to impossible values.
 	{
-		if (image != null)
+		if (image != null && numFrames != 0)
 		{
 			frameWidth	= width/numFrames;
 			frameHeight	= height;

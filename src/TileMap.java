@@ -1,6 +1,6 @@
 //==============================================================================
 // Date Created:		11 December 2011
-// Last Updated:		20 December 2011
+// Last Updated:		24 December 2011
 //
 // File Name:			TileMap.java
 // File Author:			M Matthew Hydock
@@ -165,6 +165,9 @@ public class TileMap extends GameLayer
 		int endX = parent.getWidth()/tile_size + startX;
 		int endY = parent.getHeight()/tile_size + startY;
 		
+//		System.out.println(startX + "  " + endX + "  " + tilemap[0].length);
+//		System.out.println(startY + "  " + endY + "  " + tilemap.length);
+		
 		// Calculate the real offset for the section of the tilemap that needs
 		// to be drawn.
 		int newXOffset = xOffset + startX*tile_size;
@@ -173,15 +176,16 @@ public class TileMap extends GameLayer
 		// Draw the desired range of tiles, shifting them appropriately.
 		for (int i = startY; i <= endY; i++)
 			for (int j = startX; j <= endX; j++)
-				tilemap[i][j].draw(g,i*tile_size+newXOffset,j*tile_size+newYOffset);
+				if (tilemap[i][j] != null)
+					tilemap[i][j].draw(g,j*tile_size+newXOffset,i*tile_size+newYOffset);
 	}
 	
 	public void update()
 	// Update all of the tiles in the tilemap. If a removal has been scheduled,
 	// remove the tile.
 	{
-		for (int i = 0; i < tilemap[0].length; i++)
-			for (int j = 0; j < tilemap.length; j++)
+		for (int i = 0; i < tilemap.length; i++)
+			for (int j = 0; j < tilemap[0].length; j++)
 			{
 				if (tilemap[i][j] != null)
 				{
@@ -191,6 +195,8 @@ public class TileMap extends GameLayer
 						tilemap[i][j].update();
 				}
 			}
+			
+//		System.out.println("Tilemap updated.");
 	}
 //==============================================================================
 

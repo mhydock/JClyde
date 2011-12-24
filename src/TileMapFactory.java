@@ -67,6 +67,8 @@ public class TileMapFactory
 		imgLoader = GameImageFactory.getInstanceOf();
 		
 		resetFactory();
+		
+		System.out.println("TileMapFactory initialized.");
 	}
 	
 	public static TileMapFactory getInstanceOf()
@@ -128,6 +130,8 @@ public class TileMapFactory
 			input = new BufferedReader(new FileReader(path));
 			inputEnd = false;
 			filePath = path;
+			
+			System.out.println("Tile map " + path + " set up for reading.");
 		}
 		catch (Exception e) 
 		{
@@ -169,7 +173,10 @@ public class TileMapFactory
 		
 		if (tileList.size() == 0)
 		// No tiles were loaded, so no map can be built.
-			return null;
+		{
+			System.out.println("No tiles could be loaded.");
+			System.exit(1);
+		}
 		
 		try
 		{
@@ -223,10 +230,16 @@ public class TileMapFactory
 				
 			if (anim == null)
 			// Image is not animated, make basic tile.
+			{
 				tileList.add(new Tile(temp,true));
+//				System.out.println("Static tile added to tilelist.");
+			}
 			else
 			// Image is animated, make animated tile.
+			{
 				tileList.add(new AnimatedTile((GameImageStrip)temp,anim,true));
+//				System.out.println("Animated tile added to tilelist.");
+			}
 		}
 	}
 	
@@ -263,6 +276,8 @@ public class TileMapFactory
 			System.out.println("Incorrect formatting for tileMap dimensions: " + line);
 			System.exit(1);
 		}
+		
+		tileMap = new Tile[numRows][numCols];
 	}
 	
 	private void buildTileMap()
@@ -270,64 +285,107 @@ public class TileMapFactory
 	// it is animated but in normal mode, just use the reference from the tile
 	// list. If a brick is animated, but is in sporadic mode, duplicate the
 	// animation object, to ensure the sporadic animations are unsynchronized.
-	{
+	{		
+		String line = "";
+		
 		for (int i = 0; i < numRows && curr_line != null; i++)
 		{
-			for (int j = 0; j < numCols && j < curr_line.length(); j++)
-			{
-				char ch = curr_line.charAt(j);
-				
-				if (Character.isDigit(ch))
-				// If the current character is a digit, use the tile list.
-				{
-					int index = Integer.parseInt(""+ch);
-					
-					if (index < tileList.size())
-					// If the index is within bounds, set the tile in the 
-					// tileMap.
-					{	
-						Tile tile = tileList.get(index);
-						GameAnimation anim = tile.getAnimation();
-						
-						if (anim != null && anim.isSporadic())
-						// Tile is animated and sporadic; duplicate the tile,
-						// and randomize the animation.
-						{
-							tileMap[i][j] = new AnimatedTile((GameImageStrip)tile.getImage(),anim.clone(),tile.isCollidable());
-							tileMap[i][j].getAnimation().restartAt((int)(Math.random() * (anim.getNumberFrames()-1)));
-						}
-						else
-						// Tile is either a basic tile, or animating under
-						// normal mode. Just copy the reference.
-							tileMap[i][j] = tile;
-					}
-				}
-				else if (ch == 'c')
-				// Found the start location.
-				{
-					startX = j;
-					startY = i;
-				}
-				else if (ch == 'e')
-				// Found the exit location.
-				{
-					exitX = j;
-					exitX = i;
-				}
-			}
-		
 			try
 			{
-				// Read in the next line of the map.	
+				// Advance to the first line of the tile map.	
 				curr_line = input.readLine();
+//				System.out.println(curr_line);
 			}
 			catch (IOException e)
 			{
 				System.out.println("TileMapFactory was interrupted: " + e.toString());
 				System.exit(1);
 			}
-		}
 			
+			line = curr_line;
+			
+			if (line.indexOf("//") != -1)
+			// Remove comments from the line.
+				line = line.substring(0,line.indexOf("//"));
+				
+			line = line.trim();
+			if (line.length() == 0)
+			// If the line is completely empty without the comment, then go read
+			// in the next line. 
+			{
+				i--;
+				continue;
+			}
+		
+//			System.out.println(line);
+		
+			for (int j = 0; j < numCols && j < line.length(); j++)
+			{
+//				System.out.println("Setting tile at [" + i + "," + j + "]...");
+				char ch = line.charAt(j);
+				
+				if (Character.isDigit(ch))
+				// If the current character is a digit, use the tile list.
+				{
+					int index = Integer.parseInt(""+ch);
+//					System.out.println(index + " of " + tileList.size());
+					
+					if (index < tileList.size())
+					// If the index is within bounds, set the tile in the 
+					// tileMap.
+					{	
+//						System.out.println("Loading tile...");
+						Tile tile = tileList.get(index);
+						
+//						System.out.println("Loading tile animation...");
+						GameAnimation anim = tile.getAnimation();
+						
+//						if (anim == null)
+//							System.out.println("Tile has no animation.");
+						
+						if (anim != null && anim.isSporadic())
+						// Tile is animated and sporadic; duplicate the tile,
+						// and randomize the animation.
+						{
+//							System.out.println("Duplicating animated tile...");
+							tileMap[i][j] = new AnimatedTile((GameImageStrip)tile.getImage(),anim.clone(),tile.isCollidable());
+//							System.out.println("Animated tile duplicated.");
+							tileMap[i][j].getAnimation().restartAt((int)(Math.random() * (anim.getNumberFrames()-1)));
+//							System.out.println("Animation randomized.");
+						}
+						else
+						// Tile is either a basic tile, or animating under
+						// normal mode. Just copy the reference.
+						{
+//							System.out.println("Setting tile reference...");
+							tileMap[i][j] = tile;
+//							System.out.println("Tile reference set.");
+						}	
+						
+					}
+				}
+				else if (ch == 'c')
+				// Found the start location.
+				{
+					System.out.println("Found start at [" + i + "," + j + "]");
+					startX = j;
+					startY = i;
+					System.out.println("Set start.");
+				}
+				else if (ch == 'e')
+				// Found the exit location.
+				{
+					System.out.println("Found exit at [" + i + "," + j + "]");
+					exitX = j;
+					exitY = i;
+					System.out.println("Set exit.");
+				}
+			}
+		}
+		
+//		System.out.println("Start: [" + startY + "," + startX + "]");
+//		System.out.println("Exit : [" + exitY + "," + exitX + "]");
+		
 		if (startX == -1 || startY == -1 || exitX == -1 || exitY == -1)
 		// Either start or exit wasn't found. This is a bad map.
 		{

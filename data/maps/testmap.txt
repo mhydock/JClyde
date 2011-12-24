@@ -1,7 +1,7 @@
-TILES
-dir ./data/tiles						// directory to find the images
+BEGIN_IMAGES
+dir ../data/tiles/						// directory to find the images
 
-s red_tile_anim.png 5 | r 100 s			// image strip, 5 frames, animated, repeat, 100ms/frame, sporadic mode
+s red_tile_anim.png 6 | r 100 s			// image strip, 5 frames, animated, repeat, 100ms/frame, sporadic mode
 o marble_tile.png						// single image, no animation
 o basic_brick.png
 o basic_brick_isolated.png
@@ -11,7 +11,7 @@ o basic_brick_right.png
 END_IMAGES
 
 
-TILEMAP 109 24 64		// Width Height tile_size
+TILEMAP 24 109 64		// numRows numCols tile_size
 // 'c' is where Clyde will be placed at the beginning of the level.
 // 'e' is the exit.
 // 't' is the hidden treasure.

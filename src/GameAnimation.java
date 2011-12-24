@@ -1,6 +1,6 @@
 //==============================================================================
 // Date Created:		25 November 2011
-// Last Updated:		19 December 2011
+// Last Updated:		24 December 2011
 //
 // File Name:			GameAnimation.java
 // File Author:			M Matthew Hydock
@@ -49,7 +49,10 @@ public class GameAnimation implements AnimationInterface, Cloneable
 	public static enum Mode {ONCE, REPEAT, PINGPONG};
 	
 	// The default chance the animation will be run, if in sporadic mode.
-	private static final double DEFAULT_FREQ = .5;	
+	private static final double DEFAULT_FREQ = .1;	
+	
+	// Default time per frame, in milliseconds.
+	private static final int DEFAULT_FRAME_TIME_MILLIS = 100;
 
 	private Mode anim_mode;					// What playback mode the animation is in.
 	private boolean playbackStopped;		// Is the animation currently stopped?
@@ -60,8 +63,8 @@ public class GameAnimation implements AnimationInterface, Cloneable
 		
 	private AnimationInterface anim_image;	// Animatable image to control.
 
-	private int frameDuration;				// Length of time to display the current frame.
-	private long seqDuration;				// Total duration of the entire image sequence (in msecs)
+	private long frameDuration;				// Length of time to display the current frame (in nanosecs).
+	private long seqDuration;				// Total duration of the entire image sequence (in nanosecs).
 	private long animTotalTime;				// Total accumulated time. Used to determine current frame.
 	
 	private long prevTime;					// Last time recorded.
@@ -86,7 +89,7 @@ public class GameAnimation implements AnimationInterface, Cloneable
 		anim_image		= ai;
 		
 		// If the given frame duration is 0 or smaller, then default to 100ms.
-		frameDuration	= (frame_time > 0)?frame_time:100;
+		setFrameDuration(frame_time);
 		animTotalTime	= 0L;
 
 		prevTime = System.currentTimeMillis();
@@ -102,7 +105,7 @@ public class GameAnimation implements AnimationInterface, Cloneable
 	// Completely duplicate the data in the object. The image is an object
 	// though, so it is not duplicated, only its reference is.
 	{
-		GameAnimation temp = new GameAnimation(	anim_image,frameDuration,anim_mode,
+		GameAnimation temp = new GameAnimation(	anim_image,getFrameDuration(),anim_mode,
 												playbackReversed,playbackSporadic);
 		
 		if (playbackSporadic)
@@ -192,7 +195,8 @@ public class GameAnimation implements AnimationInterface, Cloneable
 	public void setFrameDuration(int f)
 	// Set the duration of a single frame, and recalculate internal variables.
 	{
-		frameDuration = f;
+		frameDuration = (f > 0)?f:DEFAULT_FRAME_TIME_MILLIS;
+		frameDuration *= 1000000L;
 		
 		refreshData();
 	}
@@ -200,7 +204,7 @@ public class GameAnimation implements AnimationInterface, Cloneable
 	public int getFrameDuration()
 	// Return the duration of a single frame.
 	{
-		return frameDuration;
+		return (int)(frameDuration/1000000L);
 	}
 	
 	public long getSequenceDuration()
@@ -263,7 +267,7 @@ public class GameAnimation implements AnimationInterface, Cloneable
 	// Something important has changed, recalculate the animation's data.
 	{
 		// If the animatable object is null, create a broken animation.
-		if (anim_image == null)
+		if (anim_image == null || anim_image.getNumberFrames() < 0)
 		{
 			System.out.println("Animateable Game Image not provided");
 			curr_frame = -1;
@@ -402,7 +406,7 @@ public class GameAnimation implements AnimationInterface, Cloneable
 		}
 		
 		// Calculate the change in time since this method was last called.
-		currTime = System.currentTimeMillis();
+		currTime = System.nanoTime();
 		timeDiff = currTime-prevTime;
 		
 		// If it hasn't been long enough, return.
@@ -412,15 +416,22 @@ public class GameAnimation implements AnimationInterface, Cloneable
 		if (!playbackStopped)
 		{
 			// Update total animation time.
-			animTotalTime = (animTotalTime+timeDiff);
+			prevTime = currTime;
+			animTotalTime += timeDiff;
+
+//			System.out.println("Total time: " + animTotalTime + "  Frame duration: " + frameDuration);
 
 			// Calculate current frame. May be outside range (fixed further down).
 			curr_frame = (int)(animTotalTime/frameDuration);
 			
+//			System.out.println("current frame: " + curr_frame);
+			
 			// End of animation has been reached, what do?
-			if	(curr_frame >= anim_image.getNumberFrames()-1 ||
-				(playbackReversed && ((anim_image.getNumberFrames()-1)-curr_frame) <= 0))
+			if	(curr_frame > anim_image.getNumberFrames()-1 ||
+				(playbackReversed && ((anim_image.getNumberFrames()-1)-curr_frame) < 0))
 			{
+//				System.out.println("End of animation, fix current frame");
+				
 				if (playbackSporadic)
 				// Deal with animation ending while in sporadic mode.
 					sporadicPlayback();
@@ -436,6 +447,8 @@ public class GameAnimation implements AnimationInterface, Cloneable
 			// This class is pretty meta. This makes sure the underlying image
 			// knows what frame to display, if it's ever asked directly.
 			anim_image.setCurrentFrame(curr_frame);
+			
+//			System.out.println("current frame: " + curr_frame);
 		}
 	}
 	
