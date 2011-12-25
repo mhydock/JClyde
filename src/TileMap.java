@@ -165,19 +165,21 @@ public class TileMap extends GameLayer
 		int endX = parent.getWidth()/tile_size + startX;
 		int endY = parent.getHeight()/tile_size + startY;
 		
-//		System.out.println(startX + "  " + endX + "  " + tilemap[0].length);
-//		System.out.println(startY + "  " + endY + "  " + tilemap.length);
+		System.out.println(startX + "  " + endX + "  " + tilemap[0].length);
+		System.out.println(startY + "  " + endY + "  " + tilemap.length);
 		
 		// Calculate the real offset for the section of the tilemap that needs
 		// to be drawn.
 		int newXOffset = xOffset + startX*tile_size;
 		int newYOffset = yOffset + startY*tile_size;
 		
+		System.out.println(newXOffset + "  " + newYOffset);
+		
 		// Draw the desired range of tiles, shifting them appropriately.
 		for (int i = startY; i <= endY; i++)
 			for (int j = startX; j <= endX; j++)
 				if (tilemap[i][j] != null)
-					tilemap[i][j].draw(g,j*tile_size+newXOffset,i*tile_size+newYOffset);
+					tilemap[i][j].draw(g,(j-startX)*tile_size+newXOffset,(i-startY)*tile_size+newYOffset);
 	}
 	
 	public void update()

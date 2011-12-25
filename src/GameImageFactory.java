@@ -132,7 +132,7 @@ public class GameImageFactory
 				if (line.equals("END_IMAGES"))	// End of images block in file.
 					break;
 				
-				System.out.println(line);
+				System.out.println("\n" + line);
 				
     	    	return parseLine(line);			// Trying to load image.
 			}

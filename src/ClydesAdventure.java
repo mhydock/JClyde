@@ -91,9 +91,12 @@ public class ClydesAdventure extends GameFrame implements KeyListener
      
 		// Initialize the game entities.
 		tilemap = mapLoader.produceTileMap();
-//		clyde = new ClydeSprite(new GameImageGrid(CLYDE,4,3),tilemap,
-//								tilemap.getStartX()*tilemap.getTileSize(),
-//								tilemap.getStartY()*tilemap.getTileSize(),this);
+		System.out.println();
+		clyde = new ClydeSprite(new GameImageGrid(CLYDE,4,3),tilemap,
+								tilemap.getStartX()*tilemap.getTileSize(),
+								tilemap.getStartY()*tilemap.getTileSize(),this);
+
+//		System.out.println();
 
 		// Initialize the ribbons (needs special attention).
 //		ribbons = new ArrayList<Ribbon>();
@@ -104,8 +107,12 @@ public class ClydesAdventure extends GameFrame implements KeyListener
 //		for (int i = 0; i < ribbons.size(); i++)
 //			ribbons.get(i).setPosition(0,tilemap.getMapHeight()-ribbons.get(i).getHeight());
 
+		generateOffsets();
+
+		System.out.println();
+
 		// Prepare/display title/help screen.
-//		helpIm = new GameImage(HELP_SCREEN);
+		helpIm = new GameImage(HELP_SCREEN);
     	showHelp = true;
     	isPaused = true;
 
@@ -126,26 +133,27 @@ public class ClydesAdventure extends GameFrame implements KeyListener
 		{
 			// Update the environment, and the hero sprite.
 			tilemap.update();
-//			clyde.updateSprite();
+			clyde.updateSprite();
 			
 			// Shift the view.
-//			generateOffsets();
+			generateOffsets();
 			
 			// Check to see if an end-game scenario has been reached.
-//			double xPos = clyde.getXPos()/tilemap.getTileSize();
-//			double yPos = clyde.getYPos()/tilemap.getTileSize();
-//			double distanceToExit = Math.sqrt(Math.pow(xPos-tilemap.getExitX(),2)+Math.pow(yPos-tilemap.getExitY(),2));
-//			if (clyde.getHealth() == 0 || distanceToExit < 5)
-//				gameOver = true;
+			double xPos = clyde.getXPos()/tilemap.getTileSize();
+			double yPos = clyde.getYPos()/tilemap.getTileSize();
+			double distanceToExit = Math.sqrt(Math.pow(xPos-tilemap.getExitX(),2)+Math.pow(yPos-tilemap.getExitY(),2));
+			System.out.println("Distance to exit (in tiles): " + distanceToExit);
+			if (clyde.getHealth() == 0 || distanceToExit < 5)
+				gameOver = true;
 		}
 	}
 	
-/*	private void generateOffsets()
+	private void generateOffsets()
 	// Create and apply offsets, making the panel act as a sort of camera.
 	{
 		// Find the middle of the screen.
-		int xOffset = (int)(getWidth()/2-clyde.getXPos());
-		int yOffset = (int)(getHeight()/2-clyde.getYPos());
+		int xOffset = (int)(getWidth()/2-(clyde.getXPos()+clyde.getWidth()/2));
+		int yOffset = (int)(getHeight()/2-(clyde.getYPos()+clyde.getHeight()/2));
 		
 		// Try to shift the character and the environment to the middle. If the
 		// offsets move the tilemap away from the edges, force the offsets to
@@ -158,16 +166,16 @@ public class ClydesAdventure extends GameFrame implements KeyListener
 		if (yOffset > 0)
 			yOffset = 0;
 		else if (yOffset < -(tilemap.getMapHeight()-getHeight()))
-			yOffset = -(tilemap.getMapWidth()-getWidth());
+			yOffset = -(tilemap.getMapHeight()-getHeight());
 		
 		// Apply the offsets to all of the visible game objects.	
 		clyde.setOffsets(xOffset,yOffset);
 		tilemap.setOffsets(xOffset,yOffset);
-		for (int i = 0; i < ribbons.size(); i++)
-			ribbons.get(i).setOffsets(xOffset,yOffset);
+//		for (int i = 0; i < ribbons.size(); i++)
+//			ribbons.get(i).setOffsets(xOffset,yOffset);
 	}
 //==============================================================================
-*/
+
 
 //==============================================================================
 // Drawing methods.
@@ -183,18 +191,18 @@ public class ClydesAdventure extends GameFrame implements KeyListener
 //		for (int i = 0; i < ribbons.size(); i++)
 //			ribbons.get(i).display(g);
 		tilemap.display(g);
-//		clyde.drawSprite(g);
+		clyde.drawSprite(g);
 
 		drawStatus(g);
 
 		if (gameOver && clyde.getHealth() > 0)
 			victoryScreen(g);
-		if (gameOver)
+		if (gameOver && clyde.getHealth() == 0)
 			gameOverScreen(g);
 			
-//		if (showHelp)		// Draw the help at the very front (if switched on).
-//			helpIm.draw(g,	(getWidth()-helpIm.getWidth())/2, 
-//							(getHeight()-helpIm.getHeight())/2);		
+		if (showHelp)		// Draw the help at the very front (if switched on).
+			helpIm.draw(g,	(getWidth()-helpIm.getWidth())/2, 
+							(getHeight()-helpIm.getHeight())/2);		
 	}
 
 	private void drawStatus(Graphics g)
@@ -210,9 +218,9 @@ public class ClydesAdventure extends GameFrame implements KeyListener
   	
 		g.setFont(msgsFont);
 		g.setColor(Color.green);
-//		g.drawString("Gems: " + clyde.getGems() + "/" + tilemap.getNumGems(), 15+getInsets().left, getHeight()-25-getInsets().bottom);
+		g.drawString("Gems: " + clyde.getGems() + "/" + tilemap.getNumGems(), 15+getInsets().left, getHeight()-25-getInsets().bottom);
 		g.setColor(Color.gray);
-//		g.drawString("Health: " + clyde.getHealth(), 215+getInsets().left, getHeight()-25-getInsets().bottom);
+		g.drawString("Health: " + clyde.getHealth(), 215+getInsets().left, getHeight()-25-getInsets().bottom);
 	}
 
 	private void gameOverScreen(Graphics g)
@@ -278,7 +286,7 @@ public class ClydesAdventure extends GameFrame implements KeyListener
 		}
 
 		// game-play keys
-/*		if (!isPaused && !gameOver)
+		if (!isPaused && !gameOver)
 		{
 			// move the sprite and ribbons based on the arrow key pressed
 			if (keyCode == KeyEvent.VK_LEFT)
@@ -289,15 +297,15 @@ public class ClydesAdventure extends GameFrame implements KeyListener
 				clyde.doAction();
 			else if (e.isAltDown())
 				clyde.doMagic();
-			else if (e.isControlDown())
+			else if (keyCode == KeyEvent.VK_CONTROL)
 				clyde.jump();
 		}
-*/	}
+	}
 	
 	public void keyReleased(KeyEvent e)
 	// What to do when the player stops holding down action buttons.
 	{
-/*		int keyCode = e.getKeyCode();
+		int keyCode = e.getKeyCode();
 		
 		if (!isPaused && !gameOver)
 		{
@@ -309,7 +317,7 @@ public class ClydesAdventure extends GameFrame implements KeyListener
 			else if (keyCode == KeyEvent.VK_CONTROL)
 				clyde.startFalling();
 		}
-*/	}
+	}
 	
 	public void keyTyped(KeyEvent e) {}
 //==============================================================================

@@ -202,7 +202,7 @@ public class TileMapFactory
 		
 		// Initialize the tileMap, set the start and finish locations, and if
 		// any gems were found, set the number of gems found.
-		TileMap map = new TileMap(tileMap,tileList,1,tile_size,parent);
+		TileMap map = new TileMap(tileMap,tileList,0,tile_size,parent);
 		map.setStartLoc(startX,startY);
 		map.setExitLoc(exitX,exitY);
 		map.setNumGems(numGems);
@@ -367,7 +367,7 @@ public class TileMapFactory
 				else if (ch == 'c')
 				// Found the start location.
 				{
-					System.out.println("Found start at [" + i + "," + j + "]");
+					System.out.println("\nFound start at [" + i + "," + j + "]");
 					startX = j;
 					startY = i;
 					System.out.println("Set start.");
@@ -375,7 +375,7 @@ public class TileMapFactory
 				else if (ch == 'e')
 				// Found the exit location.
 				{
-					System.out.println("Found exit at [" + i + "," + j + "]");
+					System.out.println("\nFound exit at [" + i + "," + j + "]");
 					exitX = j;
 					exitY = i;
 					System.out.println("Set exit.");

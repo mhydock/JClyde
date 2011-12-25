@@ -88,17 +88,17 @@ public class GameAnimation implements AnimationInterface, Cloneable
 		anim_mode		= mode;
 		anim_image		= ai;
 		
-		// If the given frame duration is 0 or smaller, then default to 100ms.
+		// Set the duration of a frame (given in ms, recorded as ns). Also
+		// refreshes the data, setting the sequence duration and turning on the
+		// animation.
 		setFrameDuration(frame_time);
 		animTotalTime	= 0L;
 
-		prevTime = System.currentTimeMillis();
+		prevTime = System.nanoTime();
 
 		playbackReversed	= isRev;
 		playbackSporadic	= isSpo;
 		playbackFrequency	= DEFAULT_FREQ;
-
-		refreshData();
 	}
 	
 	public GameAnimation clone()
@@ -194,6 +194,7 @@ public class GameAnimation implements AnimationInterface, Cloneable
 	
 	public void setFrameDuration(int f)
 	// Set the duration of a single frame, and recalculate internal variables.
+	// If the given frame duration is 0 or smaller, then default to 100ms.
 	{
 		frameDuration = (f > 0)?f:DEFAULT_FRAME_TIME_MILLIS;
 		frameDuration *= 1000000L;
@@ -269,14 +270,16 @@ public class GameAnimation implements AnimationInterface, Cloneable
 		// If the animatable object is null, create a broken animation.
 		if (anim_image == null || anim_image.getNumberFrames() < 0)
 		{
-			System.out.println("Animateable Game Image not provided");
+//			System.out.println("Animateable Game Image not provided");
 			curr_frame = -1;
+			seqDuration = 0;
 			playbackStopped = true;
 		}
 
 		// Otherwise, initialize the animation's times and frame limits.
 		else
 		{
+//			System.out.println("Animateable Game Image has been loaded.");
 			curr_frame = 0;
 			seqDuration = frameDuration*anim_image.getNumberFrames();
 			playbackStopped = false;

@@ -37,24 +37,12 @@ public class GameImageStrip extends GameImage implements AnimationInterface
 	public GameImageStrip(String path, int frames)
 	// Create an image strip, with a set number of frames.
 	{
-		// Can't use 'super' or else it'll try to access the setImage used in
-		// this class...
-		initGraphicsConfig();
-		
-		setImage(path);
-		
-		if (isBroken())
-			System.out.println("Broken GameImage generated.");
+		super(path);
 				
 		numFrames		= (frames > 1)?frames:1;
 		curr_frame		= 0;
 		
-		System.out.println(numFrames);
-		
-		frameWidth		= width/numFrames;
-		frameHeight		= height;
-		
-		System.out.println("made a gameimagestrip.");
+		refreshData();
 	}
 	
 	public GameImageStrip(BufferedImage i, int frames)
@@ -64,8 +52,8 @@ public class GameImageStrip extends GameImage implements AnimationInterface
 		
 		numFrames		= (frames > 1)?frames:1;
 		curr_frame		= 0;
-		frameWidth		= width/numFrames;
-		frameHeight		= height;
+		
+		refreshData();
 	}
 	
 	public GameImageStrip(GameImage i, int frames)

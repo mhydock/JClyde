@@ -23,7 +23,7 @@ public class ClydeSprite extends Sprite
 	// be scaled, so as to fit reasonably within the game's resolution.
 	private static final double PIXELS_PER_METER = 64;
 	private static final double GRAVITY = -9.8;
-	private static final double HORZ_VELOCITY = 10;
+	private static final double HORZ_VELOCITY = 500;
 	private static final double VERT_VELOCITY = 200;
 	private static final double TERMINAL_VELOCITY = -1500;
 	
@@ -50,7 +50,7 @@ public class ClydeSprite extends Sprite
 	
 	// Variables pertaining to Clyde's progress through the level.
 	private int gemsCollected;
-	private int currHealth;
+	private double currHealth;
 	private boolean hasTreasure;
 
 	public ClydeSprite(GameImageGrid i, TileMap t, int x, int y, Component p)
@@ -63,10 +63,12 @@ public class ClydeSprite extends Sprite
 		
 		timeAirborn = 0;
 		
-		isStill = true;
-		isFalling = false;
-		isFacingRight = true;
-		hasWandOut = false;
+		isStill			= true;
+		isFalling		= false;
+		isRising		= false;
+		isSitting		= false;
+		isFacingRight	= true;
+		hasWandOut		= false;
 		
 		animator = new GameAnimation(i,FRAME_DUR,GameAnimation.Mode.PINGPONG,false,false);
 		resetLevel();
@@ -77,7 +79,7 @@ public class ClydeSprite extends Sprite
 //==============================================================================
 	public int getHealth()
 	{
-		return currHealth;
+		return (int)Math.ceil(currHealth);
 	}
 	
 	public int getGems()
@@ -99,6 +101,7 @@ public class ClydeSprite extends Sprite
 	// Start the animation (if it wasn't already) and move in a negative
 	// horizontal direction.
 	{
+		takeDamage(.1);
 		startLooping();
 		
 		dx = -HORZ_VELOCITY;
@@ -111,6 +114,7 @@ public class ClydeSprite extends Sprite
 	// Start the animation (if it wasn't already) and move in a positive
 	// horizontal direction.
 	{
+		takeDamage(.1);
 		startLooping();
 		
 		dx = HORZ_VELOCITY;
@@ -137,6 +141,7 @@ public class ClydeSprite extends Sprite
 		{
 			if (!isRising)
 			{
+				takeDamage(.1);
 				isRising = true;
 				startTime = System.nanoTime();
 				animator.setCurrentFrame(0);
@@ -183,7 +188,7 @@ public class ClydeSprite extends Sprite
 			}
 				
 			timeAirborn = (System.nanoTime() - startTime)/100000000L;
-			dy = Math.max(TERMINAL_VELOCITY, GRAVITY*2*timeAirborn);
+			dy = Math.min(TERMINAL_VELOCITY, GRAVITY*2*timeAirborn);
 		}
 	}
 //==============================================================================
@@ -212,7 +217,7 @@ public class ClydeSprite extends Sprite
 		gemsCollected++;
 	}
 	
-	public void takeDamage(int d)
+	public void takeDamage(double d)
 	// Inflict damage upon Clyde. If d is negative, has a healing affect.
 	{
 		currHealth -= d;
@@ -312,7 +317,7 @@ public class ClydeSprite extends Sprite
 		// Check a point in the middle of the bottom of the sprite to see if it
 		// is over a solid tile. If not, Clyde is now falling. Not a collision,
 		// but it does result in a change (though not immediate).
-		if (!isFalling && !willHitTile(xPos+getWidth()/2,yPos+getHeight()))
+		if (!isFalling && !isRising && !willHitTile(xPos+getWidth()/2,yPos+getHeight()))
 		{
 			isStill = false;
 			isFalling = true;
@@ -335,7 +340,7 @@ public class ClydeSprite extends Sprite
 			}
 			
 			dy = 0;
-			yPos = (yPos/tileMap.getTileSize() - 1)*tileMap.getTileSize();
+			yPos = ((int)yPos/tileMap.getTileSize() - 1)*tileMap.getTileSize();
 			
 			return true;
 		}
@@ -344,12 +349,12 @@ public class ClydeSprite extends Sprite
 		// Clyde a little to the side opposite the collision.
 		if (willHitTile(xPos,yPos+getHeight()) && !willHitTile(xPos+getWidth(),yPos+getHeight()))
 		{
-			xPos = (xPos/tileMap.getTileSize() + 1)*tileMap.getTileSize();
+			xPos = ((int)xPos/tileMap.getTileSize() + 1)*tileMap.getTileSize();
 			return true;
 		}
 		else if (!willHitTile(xPos,yPos+getHeight()) && willHitTile(xPos+getWidth(),yPos+getHeight()))
 		{
-			xPos = (xPos/tileMap.getTileSize())*tileMap.getTileSize();
+			xPos = ((int)xPos/tileMap.getTileSize())*tileMap.getTileSize();
 			return true;
 		}
 		
@@ -361,7 +366,7 @@ public class ClydeSprite extends Sprite
 			dy = 0;
 			isFalling = true;
 			
-			yPos = (yPos/tileMap.getTileSize() + 1)*tileMap.getTileSize();
+			yPos = ((int)yPos/tileMap.getTileSize() + 1)*tileMap.getTileSize();
 			return true;
 		}
 		
@@ -370,14 +375,14 @@ public class ClydeSprite extends Sprite
 		if (willHitTile(xPos,yPos+(getHeight()/4)) || willHitTile(xPos,yPos+(getHeight()*3/4)))
 		{
 			dx = 0;
-			xPos = (xPos/tileMap.getTileSize() + 1)*tileMap.getTileSize();
+			xPos = ((int)xPos/tileMap.getTileSize() + 1)*tileMap.getTileSize();
 			return true;
 		}
 		else if (willHitTile(xPos+getWidth(),yPos+(getHeight()/4)) || 
 				 willHitTile(xPos+getWidth(),yPos+(getHeight() * 3/4)))
 		{
 			dx = 0;
-			xPos = (xPos/tileMap.getTileSize())*tileMap.getTileSize();
+			xPos = ((int)xPos/tileMap.getTileSize())*tileMap.getTileSize();
 			return true;
 		}
 		
@@ -469,7 +474,7 @@ public class ClydeSprite extends Sprite
 		// The sprite has no image, so draw a yellow circle instead.
 		{
 			g.setColor(Color.yellow);
-			g.fillOval((int)xPos+xOffset, (int)yPos+yOffset, SIZE, SIZE);
+			g.fillOval((int)xPos+xOffset, (int)yPos+yOffset, 64, 128);
 		}
 		else
 		{
