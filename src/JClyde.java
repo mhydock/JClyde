@@ -1,8 +1,8 @@
 //==============================================================================
 // Date Created:		14 December 2011
-// Last Updated:		24 December 2011
+// Last Updated:		31 December 2011
 //
-// File Name:			ClydesAdventure.java
+// File Name:			JClyde.java
 // File Author:			M Matthew Hydock
 //
 // File Description:	The drawing surface/input manager for Clyde's Adventure,
@@ -30,7 +30,7 @@ import java.awt.event.*;
 import java.awt.*;
 import java.util.*;
 
-public class ClydesAdventure extends GameFrame implements KeyListener
+public class JClyde extends GameFrame implements KeyListener
 {
 //==============================================================================
 // Constants and external variables.
@@ -67,7 +67,7 @@ public class ClydesAdventure extends GameFrame implements KeyListener
 //==============================================================================
 // Game initialization.
 //==============================================================================
-	public ClydesAdventure(int fps, boolean windowed)
+	public JClyde(int fps, boolean windowed)
 	// Create a JPanel to display and control Clyde's Adventure.
 	{
 		super("Clyde's Adventure",fps,windowed);
@@ -160,13 +160,13 @@ public class ClydesAdventure extends GameFrame implements KeyListener
 		// align to the edges.
 		if (xOffset > 0)
 			xOffset = 0;
-		else if (xOffset < -(tilemap.getMapWidth()-getWidth()))
-			xOffset = -(tilemap.getMapWidth()-getWidth());
+		else if (xOffset < -(tilemap.getMapWidth()-getWidth()-1))
+			xOffset = -(tilemap.getMapWidth()-getWidth()-1);
 			
 		if (yOffset > 0)
 			yOffset = 0;
-		else if (yOffset < -(tilemap.getMapHeight()-getHeight()))
-			yOffset = -(tilemap.getMapHeight()-getHeight());
+		else if (yOffset < -(tilemap.getMapHeight()-getHeight()-1))
+			yOffset = -(tilemap.getMapHeight()-getHeight()-1);
 		
 		// Apply the offsets to all of the visible game objects.	
 		clyde.setOffsets(xOffset,yOffset);
@@ -193,7 +193,7 @@ public class ClydesAdventure extends GameFrame implements KeyListener
 		tilemap.display(g);
 		clyde.drawSprite(g);
 
-		drawStatus(g);
+//		drawStatus(g);
 
 		if (gameOver && clyde.getHealth() > 0)
 			victoryScreen(g);
@@ -295,9 +295,10 @@ public class ClydesAdventure extends GameFrame implements KeyListener
 				clyde.moveRight();
 			else if (keyCode == KeyEvent.VK_UP)
 				clyde.doAction();
-			else if (e.isAltDown())
+				
+			if (e.isAltDown())
 				clyde.doMagic();
-			else if (keyCode == KeyEvent.VK_CONTROL)
+			if (keyCode == KeyEvent.VK_CONTROL)
 				clyde.jump();
 		}
 	}
@@ -314,8 +315,8 @@ public class ClydesAdventure extends GameFrame implements KeyListener
 				clyde.stayStill();
 			else if (keyCode == KeyEvent.VK_ALT)
 				clyde.stopMagic();
-			else if (keyCode == KeyEvent.VK_CONTROL)
-				clyde.startFalling();
+//			else if (keyCode == KeyEvent.VK_CONTROL)
+//				clyde.startFalling();
 		}
 	}
 	
@@ -332,7 +333,7 @@ public class ClydesAdventure extends GameFrame implements KeyListener
 	{ 
 		boolean isWindowed = !(args.length == 1 && args[0].equals("fullscreen"));
 		
-		new ClydesAdventure(30, isWindowed);
+		new JClyde(30, isWindowed);
 	}
 //==============================================================================
 }
