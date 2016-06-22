@@ -4,14 +4,3 @@ Clyde, an adventuring wizard, around a castle in search of a hidden treasure.
 Along the way Clyde must gather gems, to advance to later levels, and energy,
 as his depletes with every move, and will die if it runs out. In his way lie
 traps, puzzles, and items that can be manipulated by his magic wand.
-
-While it wasn't necessary, I built this code to be as generic as possible,
-which means that with a little modification, it can act as a core for many
-kinds of sidescrollers. It was based on some sidescroller code provided by
-Andrew Davison, from his book "Killer Game Programming in Java", though much
-of it has been altered (or completely rewritten) to suit my coding style.
-
-I give complete permission to use and modify this code in its entirety, as
-long as some credit is given to me. Furthermore, I encourage its use in
-educational environments, due to its heavy documentation, utilization of
-simple design patterns, and my excessive use of encapsulation.
